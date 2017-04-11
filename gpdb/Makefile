@@ -1,5 +1,6 @@
 ifneq (,${R_HOME})
 
+SHELL=/bin/bash
 all: gppkg
 
 PGXS := $(shell pg_config --pgxs)
@@ -14,7 +15,7 @@ include $(PLR_DIR)/release.mk
 R_RPM_FLAGS="--define 'r_dir $(R_HOME)' --define 'r_ver $(R_VER)' --define 'r_rel $(R_REL)'"
 R_RPM=R-$(R_VER)-$(R_REL).$(ARCH).rpm
 
-PLR_GPPKG_VER=ossv$(PLR_OSS_VER)_pv$(PLR_VER).$(PLR_REL)_gpdb4.3orca
+PLR_GPPKG_VER=$(PLR_VER)-$(PLR_REL)-GPBD-$(GP_VERSION)
 GPPKG_VERSION=$(PLR_GPPKG_VER)
 PLR_RPM_FLAGS="--define 'plr_dir $(PLR_DIR)' --define 'plr_ver $(PLR_VER)' --define 'plr_rel $(PLR_REL)' --define 'r_ver $(R_VER)' --define 'r_dir $(R_HOME)'"
 PLR_RPM=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).rpm
