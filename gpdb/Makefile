@@ -19,7 +19,7 @@ PLR_GPPKG_VER=$(PLR_VER)-$(PLR_REL)-GPBD-$(GP_VERSION)
 GPPKG_VERSION=$(PLR_GPPKG_VER)
 PLR_RPM_FLAGS="--define 'plr_dir $(PLR_DIR)' --define 'plr_ver $(PLR_VER)' --define 'plr_rel $(PLR_REL)' --define 'r_ver $(R_VER)' --define 'r_dir $(R_HOME)'"
 PLR_RPM=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).rpm
-PLR_GPPKG=plr-$(PLR_GPPKG_VER)-$(OS)-$(ARCH).gppkg
+PLR_GPPKG=plr-$(PLR_GPPKG_VER)-$(OS)-$(ARCH)-orca.gppkg
 
 TARGET_GPPKG=$(PLR_GPPKG)
 EXTRA_CLEAN+=$(R_RPM) $(PLR_RPM) $(PLR_GPPKG)
