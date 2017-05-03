@@ -37,7 +37,7 @@ export CFLAGS="$CFLAGS -I/usr/local/lib64/bzip2/include"
 popd
 
 # LZMA dependency
-wget http://tukaani.org/xz/xz-5.2.2.tar.gz
+wget --no-check-certificate http://tukaani.org/xz/xz-5.2.2.tar.gz
 tar zxvf xz-5.2.2.tar.gz
 pushd xz-5.2.2
 ./configure --prefix=/usr/local/lib64/xz
