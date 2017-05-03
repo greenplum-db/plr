@@ -93,6 +93,10 @@ make
 make install
 make check
 popd
+#use R to install packages
+pushd plr_src/gpdb
+./installpackages.sh
+popd
 
 # Magic to make it work from any directory it is installed into
 # given the fact R_HOME is set
