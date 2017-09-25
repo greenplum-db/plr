@@ -102,13 +102,13 @@ resources:
 - name: plr_src
   type: git
   source:
-    branch: gpdb_release 
+    branch: master 
     uri: https://github.com/greenplum-db/plr.git
 
 - name: release_src
   type: git
   source:
-    branch: gpdb_release 
+    branch: master 
     uri: https://github.com/greenplum-db/plr.git
     tag_filter: 2.*
 
@@ -234,7 +234,7 @@ resources:
   type: s3
   source:
     bucket: {{gpdb4-bucket-name}}
-    region_name: {{gpdb4-aws-region}}
+    region_name: {{aws-region}}
     access_key_id: {{gpdb4-bucket-access-key-id}}
     secret_access_key: {{gpdb4-bucket-secret-access-key}}
     versioned_file: bin_gpdb_centos/bin_gpdb.tar.gz
@@ -245,7 +245,7 @@ resources:
   type: s3
   source:
     bucket: {{gpdb4-bucket-name}}
-    region_name: {{gpdb4-aws-region}}
+    region_name: {{aws-region}}
     access_key_id: {{gpdb4-bucket-access-key-id}}
     secret_access_key: {{gpdb4-bucket-secret-access-key}}
     versioned_file: bin_gpdb_sles/bin_gpdb.tar.gz
@@ -351,6 +351,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb_centos7
+      trigger: true
     - get: centos-gpdb-dev-7
   - task: r_centos7_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -369,6 +370,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb_centos6
+      trigger: true
     - get: centos-gpdb-dev-6
   - task: r_centos6_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -387,6 +389,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb_suse11
+      trigger: true
     - get: sles-gpdb-dev-11-beta
   - task: r_suse11_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -408,10 +411,10 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-7
     - get: plr_src
-      passed: [Build_R_CENTOS7]
-      trigger: true
     - get: bin_gpdb_centos7
     - get: bin_r_centos7
+      passed: [Build_R_CENTOS7]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -436,10 +439,10 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
-      passed: [Build_R_CENTOS6]
-      trigger: true
     - get: bin_gpdb_centos6
     - get: bin_r_centos6
+      passed: [Build_R_CENTOS6]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -463,11 +466,11 @@ jobs:
   plan:
   - aggregate:
     - get: plr_src
-      passed: [Build_R_SUSE11]
-      trigger: true
     - get: sles-gpdb-dev-11-beta
     - get: bin_gpdb_suse11
     - get: bin_r_suse11
+      passed: [Build_R_SUSE11]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -493,9 +496,9 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
+    - get: plr_gpdb_centos6_build
       passed: [plr_centos6_build]
       trigger: true
-    - get: plr_gpdb_centos6_build
     - get: bin_gpdb_centos6
     - get: gpdb_src
   - task: Test_PLR
@@ -515,9 +518,9 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-7
     - get: plr_src
+    - get: plr_gpdb_centos7_build
       passed: [plr_centos7_build]
       trigger: true
-    - get: plr_gpdb_centos7_build
     - get: bin_gpdb_centos7
     - get: gpdb_src
   - task: Test_PLR
@@ -537,9 +540,9 @@ jobs:
   - aggregate:
     - get: sles-gpdb-dev-11-beta
     - get: plr_src
+    - get: plr_gpdb_suse11_build
       passed: [plr_suse11_build]
       trigger: true
-    - get: plr_gpdb_suse11_build
     - get: bin_gpdb_suse11
     - get: gpdb_src
   - task: Test_PLR
@@ -630,6 +633,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_centos5
+      trigger: true
     - get: centos-gpdb-dev-5
   - task: r_centos5_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -648,6 +652,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_centos5
+      trigger: true
     - get: centos-gpdb-dev-6
   - task: r_centos6_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -666,6 +671,7 @@ jobs:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_suse11
+      trigger: true
     - get: sles-gpdb-dev-11-beta
   - task: r_suse11_build
     file: plr_src/concourse/tasks/build_r.yml
@@ -687,10 +693,10 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-5
     - get: plr_src
-      passed: [GPDB4_Build_R_CENTOS5]
-      trigger: true
     - get: bin_gpdb4_centos5
     - get: gpdb4_bin_r_centos5
+      passed: [GPDB4_Build_R_CENTOS5]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -715,10 +721,10 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
-      passed: [GPDB4_Build_R_CENTOS6]
-      trigger: true
     - get: bin_gpdb4_centos5
     - get: gpdb4_bin_r_centos6
+      passed: [GPDB4_Build_R_CENTOS6]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -742,11 +748,11 @@ jobs:
   plan:
   - aggregate:
     - get: plr_src
-      passed: [GPDB4_Build_R_SUSE11]
-      trigger: true
     - get: sles-gpdb-dev-11-beta
     - get: bin_gpdb4_suse11
     - get: gpdb4_bin_r_suse11
+      passed: [GPDB4_Build_R_SUSE11]
+      trigger: true
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
@@ -772,9 +778,9 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-5
     - get: plr_src
+    - get: plr_gpdb4_centos5_build
       passed: [gpdb4_plr_centos5_build]
       trigger: true
-    - get: plr_gpdb4_centos5_build
     - get: bin_gpdb4_centos5
     - get: gpdb_src
   - task: Test_PLR
@@ -794,9 +800,9 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
+    - get: plr_gpdb4_centos6_build
       passed: [gpdb4_plr_centos6_build]
       trigger: true
-    - get: plr_gpdb4_centos6_build
     - get: bin_gpdb4_centos5
     - get: gpdb_src
   - task: Test_PLR
@@ -816,9 +822,9 @@ jobs:
   - aggregate:
     - get: sles-gpdb-dev-11-beta
     - get: plr_src
+    - get: plr_gpdb4_suse11_build
       passed: [gpdb4_plr_suse11_build]
       trigger: true
-    - get: plr_gpdb4_suse11_build
     - get: bin_gpdb4_suse11
     - get: gpdb_src
   - task: Test_PLR

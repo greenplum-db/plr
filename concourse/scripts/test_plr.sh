@@ -41,7 +41,7 @@ function prepare_test(){
 	chown gpadmin:gpadmin /home/gpadmin/test.sh
 	chmod a+x /home/gpadmin/test.sh
 	mkdir -p /usr/lib64/R/lib64
-	ln -s /usr/local/greenplum-db-devel/ext/R-3.3.1 /usr/lib64/R/lib64/R
+	ln -s /usr/local/greenplum-db-devel/ext/R-3.3.3 /usr/lib64/R/lib64/R
 	chown -R gpadmin:gpadmin /usr/lib64/R/
 
 }
