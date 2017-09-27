@@ -140,7 +140,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb5/plr/plr-centos7.gppkg
+    versioned_file: build/gpdb5/plr/centos7/plr-devel.gppkg
 
 - name: plr_gpdb_centos7_release
   type: s3
@@ -178,7 +178,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb5/plr/plr-centos6.gppkg
+    versioned_file: build/gpdb5/plr/centos6/plr-devel.gppkg
 
 - name: plr_gpdb_centos6_release
   type: s3
@@ -216,7 +216,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb5/plr/plr-suse11.gppkg
+    versioned_file: build/gpdb5/plr/suse11/plr-devel.gppkg
 
 - name: plr_gpdb_suse11_release
   type: s3
@@ -268,7 +268,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb4/plr/plr-centos5.gppkg
+    versioned_file: build/gpdb4/plr/centos5/plr-devel.gppkg
 
 - name: plr_gpdb4_centos5_release
   type: s3
@@ -297,7 +297,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb4/plr/plr-centos6.gppkg
+    versioned_file: build/gpdb4/plr/centos6/plr-devel.gppkg
 
 - name: plr_gpdb4_centos6_release
   type: s3
@@ -326,7 +326,7 @@ resources:
     region_name: {{aws-region}}
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
-    versioned_file: build/gpdb4/plr/plr-suse11.gppkg
+    versioned_file: build/gpdb4/plr/suse11/plr-devel.gppkg
 
 - name: plr_gpdb4_suse11_release
   type: s3
@@ -507,8 +507,6 @@ jobs:
     input_mapping:
       bin_gpdb: bin_gpdb_centos6
       bin_plr: plr_gpdb_centos6_build
-    output_mapping:
-        plr_gppkg: plr_gpdb_centos6_release
     params:
       OSVER: centos6
       GPDBVER: gp5
@@ -529,8 +527,6 @@ jobs:
     input_mapping:
       bin_gpdb: bin_gpdb_centos7
       bin_plr: plr_gpdb_centos7_build
-    output_mapping:
-      plr_gppkg: plr_gpdb_centos7_release
     params:
       OSVER: centos7
       GPDBVER: gp5
@@ -551,8 +547,6 @@ jobs:
     input_mapping:
       bin_gpdb: bin_gpdb_suse11
       bin_plr: plr_gpdb_suse11_build
-    output_mapping:
-      plr_gppkg: plr_gpdb_suse11_release
     params:
       OSVER: suse11
       GPDBVER: gp5
