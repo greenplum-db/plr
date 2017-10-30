@@ -88,7 +88,7 @@ export PATH=/usr/local/lib64/texinfo/bin/:$PATH
 
 if [ "$OSVER" == "suse11" ]; then
     # Neon to make SVN work in SUSE
-    wget http://www.webdav.org/neon/neon-0.30.0.tar.gz
+    wget https://src.fedoraproject.org/repo/pkgs/neon/neon-0.30.0.tar.gz/fb60b3a124eeec441937a812c456fd94/neon-0.30.0.tar.gz
     tar zxf neon-0.30.0.tar.gz
     pushd neon-0.30.0
     ./configure --prefix=/usr/local/lib64/neon --enable-shared --with-ssl=openssl
