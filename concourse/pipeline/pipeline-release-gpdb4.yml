@@ -1,0 +1,181 @@
+## ======================================================================
+## Pipeline for GPDB PL/R GPPKG
+## ======================================================================
+
+groups:
+- name: RELEASE
+  jobs:
+    - gpdb4_plr_centos5_release
+    - gpdb4_plr_centos6_release
+    - gpdb4_plr_suse11_release
+
+resources:
+
+# Image Resources
+
+- name: centos-gpdb-dev-6
+  type: docker-image
+  source:
+    repository: pivotaldata/centos-gpdb-dev
+    tag: '6-gcc6.2-llvm3.7'
+
+- name: sles-gpdb-dev-11-beta
+  type: docker-image
+  source:
+    repository: pivotaldata/sles-gpdb-dev
+    tag: '11-beta'
+
+- name: centos-gpdb-dev-5
+  type: docker-image
+  source:
+    repository: pivotaldata/centos-gpdb-dev
+    tag: '5'
+
+# Github Source Codes
+
+- name: plr_src
+  type: git
+  source:
+    branch: master 
+    uri: https://github.com/greenplum-db/plr.git
+
+- name: release_src
+  type: git
+  source:
+    branch: master 
+    uri: https://github.com/greenplum-db/plr.git
+    tag_filter: 2.*
+
+
+# gpdb4 resources
+
+
+- name: plr_gpdb4_centos5_build
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: build/gpdb4/plr/centos5/plr-devel.gppkg
+
+- name: plr_gpdb4_centos5_release
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release/gpdb4/plr/plr-(.*)-rhel5-x86_64.gppkg
+
+# centos 6
+
+- name: plr_gpdb4_centos6_build
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: build/gpdb4/plr/centos6/plr-devel.gppkg
+
+- name: plr_gpdb4_centos6_release
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release/gpdb4/plr/plr-(.*)-rhel6-x86_64.gppkg
+
+# suse11
+
+- name: plr_gpdb4_suse11_build
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: build/gpdb4/plr/suse11/plr-devel.gppkg
+
+- name: plr_gpdb4_suse11_release
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release/gpdb4/plr/plr-(.*)-sles11-x86_64.gppkg
+
+## ======================================================================
+## jobs
+## ======================================================================
+
+jobs:
+- name: gpdb4_plr_centos5_release
+  plan:
+  - aggregate:
+    - get: centos-gpdb-dev-5
+    - get: plr_src
+    - get: plr_gpdb4_centos5_build
+    - get: release_src
+      trigger: true
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/release_plr.yml
+    image: centos-gpdb-dev-5
+    input_mapping:
+      bin_plr: plr_gpdb4_centos5_build
+    output_mapping:
+        plr_gppkg: plr_gpdb4_centos5_release
+    params:
+      OSVER: centos5
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_centos5_release
+    params:
+      file: plr_gpdb4_centos5_release/plr-*.gppkg
+
+- name: gpdb4_plr_centos6_release
+  plan:
+  - aggregate:
+    - get: centos-gpdb-dev-6
+    - get: plr_src
+    - get: plr_gpdb4_centos6_build
+    - get: release_src
+      trigger: true
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/release_plr.yml
+    image: centos-gpdb-dev-6
+    input_mapping:
+      bin_gpdb: bin_gpdb4_centos5
+      bin_plr: plr_gpdb4_centos6_build
+    output_mapping:
+        plr_gppkg: plr_gpdb4_centos6_release
+    params:
+      OSVER: centos6
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_centos6_release
+    params:
+      file: plr_gpdb4_centos6_release/plr-*.gppkg
+
+- name: gpdb4_plr_suse11_release
+  plan:
+  - aggregate:
+    - get: sles-gpdb-dev-11-beta
+    - get: plr_src
+    - get: plr_gpdb4_suse11_build
+    - get: release_src
+      trigger: true
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/release_plr.yml
+    image: sles-gpdb-dev-11-beta
+    input_mapping:
+      bin_plr: plr_gpdb4_suse11_build
+    output_mapping:
+      plr_gppkg: plr_gpdb4_suse11_release
+    params:
+      OSVER: suse11
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_suse11_release
+    params:
+      file: plr_gpdb4_suse11_release/plr-*.gppkg
