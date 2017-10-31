@@ -5,8 +5,11 @@ set -exo pipefail
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TOP_DIR=${CWDIR}/../../../
 
-source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
-
+if [ "$GPDBVER" == "GPDB4.3" ]; then
+    source "${TOP_DIR}/gpdb_src/ci/concourse/scripts/common.bash"
+else
+    source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
+fi
 function pkg() {
     source /opt/gcc_env.sh
     source /usr/local/greenplum-db-devel/greenplum_path.sh
