@@ -38,12 +38,6 @@ resources:
   source:
     branch: master 
     uri: https://github.com/greenplum-db/plr.git
-
-- name: release_src
-  type: git
-  source:
-    branch: master 
-    uri: https://github.com/greenplum-db/plr.git
     tag_filter: 2.*
 
 
@@ -117,9 +111,8 @@ jobs:
   plan:
   - aggregate:
     - get: centos-gpdb-dev-5
-    - get: plr_src
     - get: plr_gpdb4_centos5_build
-    - get: release_src
+    - get: plr_src
       trigger: true
   - task: Test_PLR
     file: plr_src/concourse/tasks/release_plr.yml
@@ -139,9 +132,8 @@ jobs:
   plan:
   - aggregate:
     - get: centos-gpdb-dev-6
-    - get: plr_src
     - get: plr_gpdb4_centos6_build
-    - get: release_src
+    - get: plr_src
       trigger: true
   - task: Test_PLR
     file: plr_src/concourse/tasks/release_plr.yml
@@ -162,9 +154,8 @@ jobs:
   plan:
   - aggregate:
     - get: sles-gpdb-dev-11-beta
-    - get: plr_src
     - get: plr_gpdb4_suse11_build
-    - get: release_src
+    - get: plr_src
       trigger: true
   - task: Test_PLR
     file: plr_src/concourse/tasks/release_plr.yml
