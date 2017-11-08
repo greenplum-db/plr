@@ -19,12 +19,6 @@ resources:
     repository: pivotaldata/centos-gpdb-dev
     tag: '6-gcc6.2-llvm3.7'
 
-- name: sles-gpdb-dev-11-beta
-  type: docker-image
-  source:
-    repository: pivotaldata/sles-gpdb-dev
-    tag: '11-beta'
-
 - name: centos-gpdb-dev-5
   type: docker-image
   source:
@@ -36,7 +30,7 @@ resources:
 - name: plr_src
   type: git
   source:
-    branch: master 
+    branch: master
     uri: https://github.com/greenplum-db/plr.git
     tag_filter: 2.*
 
@@ -153,13 +147,11 @@ jobs:
 - name: gpdb4_plr_suse11_release
   plan:
   - aggregate:
-    - get: sles-gpdb-dev-11-beta
     - get: plr_gpdb4_suse11_build
     - get: plr_src
       trigger: true
   - task: Test_PLR
-    file: plr_src/concourse/tasks/release_plr.yml
-    image: sles-gpdb-dev-11-beta
+    file: plr_src/concourse/tasks/release_plr_sles.yml
     input_mapping:
       bin_plr: plr_gpdb4_suse11_build
     output_mapping:
