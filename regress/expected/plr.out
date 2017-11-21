@@ -823,6 +823,7 @@ select * from restore_df((select test_serialize('select oid, typname from pg_typ
 (3 rows)
 
 --now cleaning 
+-- start_ignore
 DROP FUNCTION plr_call_handler() cascade; 
 NOTICE:  drop cascades to language plr
 NOTICE:  drop cascades to function restore_df(bytea)
@@ -903,3 +904,6 @@ DROP TYPE IF EXISTS mtup CASCADE;
 DROP TYPE IF EXISTS vtup CASCADE; 
 drop table if exists foo cascade; 
 NOTICE:  drop cascades to function get_foo(integer)
+-- end_ignore
+\!echo $?
+0

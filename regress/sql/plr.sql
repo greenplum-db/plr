@@ -319,6 +319,7 @@ returns setof record as '
 select * from restore_df((select test_serialize('select oid, typname from pg_type where typname in (''oid'',''name'',''int4'')'))) as t(oid oid, typname name);
 
 --now cleaning 
+-- start_ignore
 DROP FUNCTION plr_call_handler() cascade; 
 DROP TYPE IF EXISTS plr_environ_type cascade; 
 DROP TYPE IF EXISTS r_typename cascade; 
@@ -328,3 +329,5 @@ DROP TYPE IF EXISTS dtup CASCADE;
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 
 drop table if exists foo cascade; 
+-- end_ignore
+\!echo $?
