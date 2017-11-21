@@ -905,5 +905,3 @@ DROP TYPE IF EXISTS vtup CASCADE;
 drop table if exists foo cascade; 
 NOTICE:  drop cascades to function get_foo(integer)
 -- end_ignore
-\!echo $?
-0

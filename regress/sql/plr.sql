@@ -330,4 +330,3 @@ DROP TYPE IF EXISTS mtup CASCADE;
 DROP TYPE IF EXISTS vtup CASCADE; 
 drop table if exists foo cascade; 
 -- end_ignore
-\!echo $?
