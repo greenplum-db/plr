@@ -41,7 +41,6 @@ function prepare_test(){
 
 	EOF
 
-	chown -R gpadmin:gpadmin $(pwd)
 	chown gpadmin:gpadmin /home/gpadmin/test.sh
 	chmod a+x /home/gpadmin/test.sh
 	mkdir -p /usr/lib64/R/lib64
