@@ -333,7 +333,6 @@ jobs:
 - name: gpdb4_plr_suse11_test
   plan:
   - aggregate:
-    - get: sles-gpdb-dev-11-beta
     - get: plr_src
     - get: plr_gpdb4_suse11_build
       passed: [gpdb4_plr_suse11_build]
@@ -341,8 +340,7 @@ jobs:
     - get: bin_gpdb4_suse11
     - get: gpdb_src
   - task: Test_PLR
-    file: plr_src/concourse/tasks/test_plr.yml
-    image: sles-gpdb-dev-11-beta
+    file: plr_src/concourse/tasks/test_plr_sles.yml
     input_mapping:
       bin_gpdb: bin_gpdb4_suse11
       bin_plr: plr_gpdb4_suse11_build
