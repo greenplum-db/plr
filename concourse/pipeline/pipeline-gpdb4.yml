@@ -270,7 +270,7 @@ jobs:
     - get: gpdb_src
   - aggregate:
     - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr_sles11.yml
+      file: plr_src/concourse/tasks/build_plr_sles.yml
       input_mapping:
         bin_gpdb: bin_gpdb4_suse11
         bin_r: gpdb4_bin_r_suse11
