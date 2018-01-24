@@ -318,6 +318,20 @@ returns setof record as '
 
 select * from restore_df((select test_serialize('select oid, typname from pg_type where typname in (''oid'',''name'',''int4'')'))) as t(oid oid, typname name);
 
+CREATE OR REPLACE FUNCTION rlargeint8out(n int) RETURNS int8[] AS $$
+matrix(2, 1, n)
+$$ LANGUAGE plr;
+
+CREATE OR REPLACE FUNCTION routfloat4(n int) RETURNS float4[] AS $$
+vector(mode = "numeric", length = n)
+$$ LANGUAGE plr;
+
+SELECT rlargeint8out(10);
+SELECT routfloat4(10);
+
+SELECT count(rlargeint8out(15000));
+SELECT count(routfloat4(15000));
+
 --now cleaning 
 -- start_ignore
 DROP FUNCTION plr_call_handler() cascade; 

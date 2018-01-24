@@ -822,6 +822,36 @@ select * from restore_df((select test_serialize('select oid, typname from pg_typ
   26 | oid
 (3 rows)
 
+CREATE OR REPLACE FUNCTION rlargeint8out(n int) RETURNS int8[] AS $$
+matrix(2, 1, n)
+$$ LANGUAGE plr;
+CREATE OR REPLACE FUNCTION routfloat4(n int) RETURNS float4[] AS $$
+vector(mode = "numeric", length = n)
+$$ LANGUAGE plr;
+SELECT rlargeint8out(10);
+      rlargeint8out      
+-------------------------
+ {{2,2,2,2,2,2,2,2,2,2}}
+(1 row)
+
+SELECT routfloat4(10);
+      routfloat4       
+-----------------------
+ {0,0,0,0,0,0,0,0,0,0}
+(1 row)
+
+SELECT count(rlargeint8out(15000));
+ count 
+-------
+     1
+(1 row)
+
+SELECT count(routfloat4(15000));
+ count 
+-------
+     1
+(1 row)
+
 --now cleaning 
 -- start_ignore
 DROP FUNCTION plr_call_handler() cascade; 
