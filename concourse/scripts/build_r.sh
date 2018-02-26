@@ -28,14 +28,15 @@ fi
 
 
 # Zlib dependency
-wget --no-check-certificate https://github.com/madler/zlib/archive/v1.2.8.tar.gz -O v1.2.8.tar.gz
-tar zxf v1.2.8.tar.gz
+pushd ${TOP_DIR}/zlib 
+tar zxf zlib-1.2.8.tar.gz
 pushd zlib-1.2.8
 ./configure --prefix=/usr/local/lib64/zlib
 make -j
 make install
 export LD_LIBRARY_PATH=/usr/local/lib64/zlib/lib:$LD_LIBRARY_PATH
 export CFLAGS="$CFLAGS -I/usr/local/lib64/zlib/include"
+popd
 popd
 
 

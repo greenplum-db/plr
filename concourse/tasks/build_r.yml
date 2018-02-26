@@ -4,6 +4,7 @@ image_resource:
 inputs:
   - name: plr_src
   - name: xz
+  - name: zlib
 
 outputs:
   - name: bin_r
