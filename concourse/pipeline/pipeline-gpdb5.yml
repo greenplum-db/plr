@@ -141,6 +141,16 @@ resources:
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
     versioned_file: dependancy/xz-5.2.2.tar.gz
+
+- name: zlib
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: dependancy/zlib-1.2.8.tar.gz
+
 ## jobs
 ## ======================================================================
 
@@ -157,6 +167,7 @@ jobs:
       trigger: true
     - get: centos-gpdb-dev-7
     - get: xz
+    - get: zlib
   - task: r_centos7_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-7
@@ -177,6 +188,7 @@ jobs:
       trigger: true
     - get: centos-gpdb-dev-6
     - get: xz
+    - get: zlib
   - task: r_centos6_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-6
@@ -196,6 +208,7 @@ jobs:
     - get: bin_gpdb_suse11
       trigger: true
     - get: xz
+    - get: zlib
   - task: r_suse11_build
     file: plr_src/concourse/tasks/build_r_sles.yml
     output_mapping:
