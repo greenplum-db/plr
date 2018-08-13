@@ -41,7 +41,8 @@ popd
 
 
 # BZip2 dependency
-wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+pushd ${TOP_DIR}/bzip2
+#wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
 tar zxf bzip2-1.0.6.tar.gz
 pushd bzip2-1.0.6
 make -f Makefile-libbz2_so
@@ -52,6 +53,7 @@ ln -s libbz2.so.1     libbz2.so
 cp libbz2.so* /usr/local/lib64/bzip2/lib
 export LD_LIBRARY_PATH=/usr/local/lib64/bzip2/lib:$LD_LIBRARY_PATH
 export CFLAGS="$CFLAGS -I/usr/local/lib64/bzip2/include"
+popd
 popd
 
 # LZMA dependency

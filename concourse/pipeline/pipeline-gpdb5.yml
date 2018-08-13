@@ -151,6 +151,15 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     versioned_file: dependancy/zlib-1.2.8.tar.gz
 
+- name: bzip2
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: dependancy/bzip2-1.0.6.tar.gz
+
 ## jobs
 ## ======================================================================
 
@@ -168,6 +177,7 @@ jobs:
     - get: centos-gpdb-dev-7
     - get: xz
     - get: zlib
+    - get: bzip2
   - task: r_centos7_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-7
@@ -189,6 +199,7 @@ jobs:
     - get: centos-gpdb-dev-6
     - get: xz
     - get: zlib
+    - get: bzip2
   - task: r_centos6_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-6
@@ -209,6 +220,7 @@ jobs:
       trigger: true
     - get: xz
     - get: zlib
+    - get: bzip2
   - task: r_suse11_build
     file: plr_src/concourse/tasks/build_r_sles.yml
     output_mapping:

@@ -5,6 +5,7 @@ inputs:
   - name: plr_src
   - name: xz
   - name: zlib
+  - name: bzip2
 
 outputs:
   - name: bin_r
