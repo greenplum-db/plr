@@ -40,7 +40,6 @@ resources:
   source:
     branch: {{gpdb-git-branch}}
     uri: {{gpdb-git-remote}}
-    private_key: {{gpdb-git-key}}
 
 - name: plr_src
   type: git
