@@ -8,6 +8,9 @@ groups:
     - plr_centos6_release
     - plr_centos7_release
     - plr_suse11_release
+    - plr_centos6_test
+    - plr_centos7_test
+    - plr_suse11_test
 
 resources:
 
@@ -27,13 +30,13 @@ resources:
 
 # Github Source Codes
 
-- name: plr_src
+- name: gpdb_src
   type: git
   source:
-    branch: master
-    uri: https://github.com/greenplum-db/plr.git
+    branch: {{gpdb-git-branch}}
+    uri: {{gpdb-git-remote}}
 
-- name: release_src
+- name: plr_src
   type: git
   source:
     branch: master
@@ -60,6 +63,16 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb5/plr/plr-(.*)-rhel7-x86_64.gppkg
 
+
+- name: bin_gpdb_centos7
+  type: s3
+  source:
+    bucket: {{bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: bin_gpdb_centos7/bin_gpdb.tar.gz
+
 # centtos 6
 
 - name: plr_gpdb_centos6_build
@@ -79,6 +92,15 @@ resources:
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb5/plr/plr-(.*)-rhel6-x86_64.gppkg
+
+- name: bin_gpdb_centos6
+  type: s3
+  source:
+    bucket: {{bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: bin_gpdb_centos/bin_gpdb.tar.gz
 
 # suse11
 
@@ -100,6 +122,15 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb5/plr/plr-(.*)-sles11-x86_64.gppkg
 
+- name: bin_gpdb_suse11
+  type: s3
+  source:
+    bucket: {{bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: bin_gpdb_sles11/bin_gpdb.tar.gz
+
 ## ======================================================================
 ## jobs
 ## ======================================================================
@@ -109,9 +140,8 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
-    - get: plr_gpdb_centos6_build
-    - get: release_src
       trigger: true
+    - get: plr_gpdb_centos6_build
   - task: release_PLR
     file: plr_src/concourse/tasks/release_plr.yml
     image: centos-gpdb-dev-6
@@ -131,9 +161,8 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-7
     - get: plr_src
-    - get: plr_gpdb_centos7_build
-    - get: release_src
       trigger: true
+    - get: plr_gpdb_centos7_build
   - task: release_PLR
     file: plr_src/concourse/tasks/release_plr.yml
     image: centos-gpdb-dev-7
@@ -152,9 +181,8 @@ jobs:
   plan:
   - aggregate:
     - get: plr_src
-    - get: plr_gpdb_suse11_build
-    - get: release_src
       trigger: true
+    - get: plr_gpdb_suse11_build
   - task: release_PLR
     file: plr_src/concourse/tasks/release_plr_sles.yml
     input_mapping:
@@ -167,4 +195,65 @@ jobs:
   - put: plr_gpdb_suse11_release
     params:
       file: plr_gpdb_suse11_release/plr-*.gppkg
+
+- name: plr_centos6_test
+  plan:
+  - aggregate:
+    - get: centos-gpdb-dev-6
+    - get: plr_src
+    - get: plr_gpdb_centos6_release
+      passed: [plr_centos6_release]
+      trigger: true
+    - get: bin_gpdb_centos6
+      trigger: true
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: centos-gpdb-dev-6
+    input_mapping:
+      bin_gpdb: bin_gpdb_centos6
+      bin_plr: plr_gpdb_centos6_release
+    params:
+      OSVER: centos6
+      GPDBVER: gp5
+
+- name: plr_centos7_test
+  plan:
+  - aggregate:
+    - get: centos-gpdb-dev-7
+    - get: plr_src
+    - get: plr_gpdb_centos7_release
+      passed: [plr_centos7_release]
+      trigger: true
+    - get: bin_gpdb_centos7
+      trigger: true
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: centos-gpdb-dev-7
+    input_mapping:
+      bin_gpdb: bin_gpdb_centos7
+      bin_plr: plr_gpdb_centos7_release
+    params:
+      OSVER: centos7
+      GPDBVER: gp5
+
+- name: plr_suse11_test
+  plan:
+  - aggregate:
+    - get: plr_src
+    - get: plr_gpdb_suse11_release
+      passed: [plr_suse11_release]
+      trigger: true
+    - get: bin_gpdb_suse11
+      trigger: true
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr_sles.yml
+    input_mapping:
+      bin_gpdb: bin_gpdb_suse11
+      bin_plr: plr_gpdb_suse11_release
+    params:
+      OSVER: suse11
+      GPDBVER: gp5
 
