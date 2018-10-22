@@ -85,6 +85,15 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb4/plr/plr-(.*)-rhel5-x86_64.gppkg
 
+- name: plr_gpdb4_centos5_release_candidate
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release_candidate/gpdb4/plr/plr-(.*)-rhel5-x86_64.gppkg
+
 # centos 6
 
 - name: plr_gpdb4_centos6_build
@@ -105,6 +114,15 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb4/plr/plr-(.*)-rhel6-x86_64.gppkg
 
+- name: plr_gpdb4_centos6_release_candidate
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release_candidate/gpdb4/plr/plr-(.*)-rhel6-x86_64.gppkg
+
 # suse11
 
 - name: plr_gpdb4_suse11_build
@@ -124,6 +142,15 @@ resources:
     access_key_id: {{bucket-access-key-id}}
     secret_access_key: {{bucket-secret-access-key}}
     regexp: release/gpdb4/plr/plr-(.*)-sles11-x86_64.gppkg
+
+- name: plr_gpdb4_suse11_release_candidate
+  type: s3
+  source:
+    bucket: {{pl-bucket-name}}
+    region_name: {{aws-region}}
+    access_key_id: {{bucket-access-key-id}}
+    secret_access_key: {{bucket-secret-access-key}}
+    regexp: release_candidate/gpdb4/plr/plr-(.*)-sles11-x86_64.gppkg
 
 ## ======================================================================
 ## jobs
@@ -147,7 +174,7 @@ jobs:
     params:
       OSVER: centos5
       GPDBVER: GPDB4.3
-  - put: plr_gpdb4_centos5_release
+  - put: plr_gpdb4_centos5_release_candidate
     params:
       file: plr_gpdb4_centos5_release/plr-*.gppkg
 
@@ -169,7 +196,7 @@ jobs:
     params:
       OSVER: centos6
       GPDBVER: GPDB4.3
-  - put: plr_gpdb4_centos6_release
+  - put: plr_gpdb4_centos6_release_candidate
     params:
       file: plr_gpdb4_centos6_release/plr-*.gppkg
 
@@ -188,7 +215,7 @@ jobs:
     params:
       OSVER: suse11
       GPDBVER: GPDB4.3
-  - put: plr_gpdb4_suse11_release
+  - put: plr_gpdb4_suse11_release_candidate
     params:
       file: plr_gpdb4_suse11_release/plr-*.gppkg
 
@@ -197,8 +224,6 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-5
     - get: plr_gpdb4_centos5_release
-      passed: [gpdb4_plr_centos5_release]
-      trigger: true
     - get: plr_src
     - get: bin_gpdb4_centos5
       trigger: true
@@ -218,8 +243,6 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_gpdb4_centos6_release
-      passed: [gpdb4_plr_centos6_release]
-      trigger: true
     - get: plr_src
     - get: bin_gpdb4_centos5
       trigger: true
@@ -228,7 +251,7 @@ jobs:
     file: plr_src/concourse/tasks/test_plr.yml
     image: centos-gpdb-dev-6
     input_mapping:
-      bin_gpdb: bin_gpdb4_centos6
+      bin_gpdb: bin_gpdb4_centos5
       bin_plr: plr_gpdb4_centos6_release
     params:
       OSVER: centos6
@@ -238,8 +261,6 @@ jobs:
   plan:
   - aggregate:
     - get: plr_gpdb4_suse11_release
-      passed: [gpdb4_plr_suse11_release]
-      trigger: true
     - get: plr_src
     - get: bin_gpdb4_suse11
       trigger: true
