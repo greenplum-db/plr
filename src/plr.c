@@ -1740,7 +1740,7 @@ haveModulesTable(Oid nspOid)
 	char		   *sql_format = "SELECT NULL "
 								 "FROM pg_catalog.pg_class "
 								 "WHERE "
-								 "relname = 'plr_modules';";
+								 "relname = 'plr_modules' LIMIT 1;";
     int  spiRc;
 
 	appendStringInfo(sql, sql_format, nspOid);

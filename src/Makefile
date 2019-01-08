@@ -73,7 +73,7 @@ override CPPFLAGS := -I"$(srcdir)" -I"$(r_includespec)" $(CPPFLAGS)
 override CPPFLAGS += -DPKGLIBDIR=\"$(pkglibdir)\" -DDLSUFFIX=\"$(DLSUFFIX)\"
 override CPPFLAGS += -DR_HOME_DEFAULT=\"$(rhomedef)\"
 
-REGRESS_OPTS = --dbname=$(PL_TESTDB) --load-language=plr
+REGRESS_OPTS = --dbname=$(PL_TESTDB)
 REGRESS = plr
 
 .PHONY: release
