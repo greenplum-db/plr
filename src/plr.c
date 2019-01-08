@@ -1740,8 +1740,7 @@ haveModulesTable(Oid nspOid)
 	char		   *sql_format = "SELECT NULL "
 								 "FROM pg_catalog.pg_class "
 								 "WHERE "
-								 "relname = 'plr_modules' AND "
-								 "relnamespace = %u";
+								 "relname = 'plr_modules';";
     int  spiRc;
 
 	appendStringInfo(sql, sql_format, nspOid);
@@ -1769,9 +1768,7 @@ getModulesSql(Oid nspOid)
 								 "FROM %s "
 								 "ORDER BY modseq";
 
-	appendStringInfo(sql, sql_format,
-					 quote_qualified_identifier(get_namespace_name(nspOid),
-												"plr_modules"));
+	appendStringInfo(sql, sql_format, "plr_modules");
 
     return sql->data;
 }

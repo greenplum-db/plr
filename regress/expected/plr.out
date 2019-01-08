@@ -1,82 +1,5 @@
 \set ECHO all
-\i /usr/local/greenplum-db-devel/share/postgresql/extension/plr.sql
-SET autocommit TO 'on';
-CREATE FUNCTION plr_call_handler()
-RETURNS LANGUAGE_HANDLER
-AS '$libdir/plr' LANGUAGE c;
-CREATE OR REPLACE FUNCTION reload_plr_modules ()
-RETURNS text
-AS '$libdir/plr','reload_plr_modules'
-LANGUAGE c;
-CREATE OR REPLACE FUNCTION install_rcmd (text)
-RETURNS text
-AS '$libdir/plr','install_rcmd'
-LANGUAGE c;
-REVOKE EXECUTE ON FUNCTION install_rcmd (text) FROM PUBLIC;
-CREATE OR REPLACE FUNCTION plr_singleton_array (float8)
-RETURNS float8[]
-AS '$libdir/plr','plr_array'
-LANGUAGE c;
-CREATE OR REPLACE FUNCTION plr_array_push (_float8, float8)
-RETURNS float8[]
-AS '$libdir/plr','plr_array_push'
-LANGUAGE c;
-CREATE OR REPLACE FUNCTION plr_array_accum (_float8, float8)
-RETURNS float8[]
-AS '$libdir/plr','plr_array_accum'
-LANGUAGE c;
-CREATE TYPE plr_environ_type AS (name text, value text);
-CREATE OR REPLACE FUNCTION plr_environ ()
-RETURNS SETOF plr_environ_type
-AS '$libdir/plr','plr_environ'
-LANGUAGE c;
-REVOKE EXECUTE ON FUNCTION plr_environ() FROM PUBLIC;
-CREATE TYPE r_typename AS (typename text, typeoid oid);
-CREATE OR REPLACE FUNCTION r_typenames()
-RETURNS SETOF r_typename AS '
-  x <- ls(name = .GlobalEnv, pat = "OID")
-  y <- vector()
-  for (i in 1:length(x)) {y[i] <- eval(parse(text = x[i]))}
-  data.frame(typename = x, typeoid = y)
-' language plr;
-CREATE OR REPLACE FUNCTION load_r_typenames()
-RETURNS text AS '
-  sql <- "select upper(typname::text) || ''OID'' as typename, oid from pg_catalog.pg_type where typtype = ''b'' order by typname"
-  rs <- pg.spi.exec(sql)
-  for(i in 1:nrow(rs))
-  {
-    typobj <- rs[i,1]
-    typval <- rs[i,2]
-    if (substr(typobj,1,1) == "_")
-      typobj <- paste("ARRAYOF", substr(typobj,2,nchar(typobj)), sep="")
-    assign(typobj, typval, .GlobalEnv)
-  }
-  return("OK")
-' language plr;
-CREATE TYPE r_version_type AS (name text, value text);
-CREATE OR REPLACE FUNCTION r_version()
-RETURNS setof r_version_type as '
-  cbind(names(version),unlist(version))
-' language plr;
-CREATE OR REPLACE FUNCTION plr_set_rhome (text)
-RETURNS text
-AS '$libdir/plr','plr_set_rhome'
-LANGUAGE c;
-REVOKE EXECUTE ON FUNCTION plr_set_rhome (text) FROM PUBLIC;
-CREATE OR REPLACE FUNCTION plr_unset_rhome ()
-RETURNS text
-AS '$libdir/plr','plr_unset_rhome'
-LANGUAGE c;
-REVOKE EXECUTE ON FUNCTION plr_unset_rhome () FROM PUBLIC;
-CREATE OR REPLACE FUNCTION plr_set_display (text)
-RETURNS text
-AS '$libdir/plr','plr_set_display'
-LANGUAGE c;
-REVOKE EXECUTE ON FUNCTION plr_set_display (text) FROM PUBLIC;
-CREATE OR REPLACE FUNCTION plr_get_raw (bytea)
-RETURNS bytea
-AS '$libdir/plr','plr_get_raw'
-LANGUAGE c;
+CREATE EXTENSION plr;
 -- make typenames available in the global namespace
 select load_r_typenames();
  load_r_typenames 
@@ -197,6 +120,41 @@ select pg_test_install('hello world');
  pg_test_install 
 -----------------
  hello world
+(1 row)
+
+CREATE TABLE plr_modules (
+	modseq int4,
+	modsrc text
+) DISTRIBUTED REPLICATED;
+CREATE TABLE module_test (i int) DISTRIBUTED BY (i);
+INSERT INTO module_test select * from generate_series(1, 10);
+CREATE OR REPLACE FUNCTION pg_test_module_load(text) RETURNS TEXT AS
+'pg.test.module.load(arg1)' LANGUAGE plr;
+INSERT INTO plr_modules
+VALUES (0, 'pg.test.module.load <-function(msg) {print(msg)}');
+select reload_plr_modules();
+ reload_plr_modules 
+--------------------
+ OK
+(1 row)
+
+-- force to reload on segment
+select count(reload_plr_modules()) from module_test;
+ count 
+-------
+    10
+(1 row)
+
+select pg_test_module_load('hello world');
+ pg_test_module_load 
+---------------------
+ hello world
+(1 row)
+
+select count(pg_test_module_load('hello world')) from module_test;
+ count 
+-------
+    10
 (1 row)
 
 --
@@ -855,83 +813,87 @@ SELECT count(routfloat4(15000));
 --now cleaning 
 -- start_ignore
 DROP FUNCTION plr_call_handler() cascade; 
-NOTICE:  drop cascades to language plr
-NOTICE:  drop cascades to function restore_df(bytea)
-NOTICE:  drop cascades to function test_serialize(text)
-NOTICE:  drop cascades to function cursor_fetch_test_arg(integer)
-NOTICE:  drop cascades to function cursor_fetch_test(integer,boolean)
-NOTICE:  drop cascades to function arr3d(integer[])
-NOTICE:  drop cascades to function arr3d(integer[],integer,integer,integer)
-NOTICE:  drop cascades to function test_in_m_tup(integer[])
-NOTICE:  drop cascades to function test_foo(foo)
-NOTICE:  drop cascades to function r_max(integer,integer)
-NOTICE:  drop cascades to function r_test(double precision)
-NOTICE:  drop cascades to function test_spi_execp(text,text,text)
-NOTICE:  drop cascades to function test_spi_prep(text)
-NOTICE:  drop cascades to function fetch_pgoid(text)
-NOTICE:  drop cascades to function test_spi_tup(text)
-NOTICE:  drop cascades to function test_spi_ta(text)
-NOTICE:  drop cascades to function test_spi_t(text)
-NOTICE:  drop cascades to function pg_quote_literal(text)
-NOTICE:  drop cascades to function pg_quote_ident(text)
-NOTICE:  drop cascades to function test_vtup1()
-NOTICE:  drop cascades to function test_mtup1()
-NOTICE:  drop cascades to function test_dtup2()
-NOTICE:  drop cascades to function test_dtup1()
-NOTICE:  drop cascades to function test_vint()
-NOTICE:  drop cascades to function test_vtup()
-NOTICE:  drop cascades to function test_mtup()
-NOTICE:  drop cascades to function test_dtup()
-NOTICE:  drop cascades to function test_dia1()
-NOTICE:  drop cascades to function test_dta2()
-NOTICE:  drop cascades to function test_dta1()
-NOTICE:  drop cascades to function test_dta()
-NOTICE:  drop cascades to function test_dia()
-NOTICE:  drop cascades to function test_mia()
-NOTICE:  drop cascades to function test_mta()
-NOTICE:  drop cascades to function test_via()
-NOTICE:  drop cascades to function test_vta()
-NOTICE:  drop cascades to function test_di()
-NOTICE:  drop cascades to function test_dt()
-NOTICE:  drop cascades to function test_mi()
-NOTICE:  drop cascades to function test_mt()
-NOTICE:  drop cascades to function test_vi()
-NOTICE:  drop cascades to function test_vt()
-NOTICE:  drop cascades to function r_median(double precision[])
-NOTICE:  drop cascades to function "median"(double precision)
-NOTICE:  drop cascades to function sprintf(text,text,text)
-NOTICE:  drop cascades to function mean(double precision[])
-NOTICE:  drop cascades to function sd(double precision[])
-NOTICE:  drop cascades to function rcube(integer)
-NOTICE:  drop cascades to function print(text)
-NOTICE:  drop cascades to function reval(text[])
-NOTICE:  drop cascades to function vec(double precision)
-NOTICE:  drop cascades to function "commandArgs"()
-NOTICE:  drop cascades to function reval(text)
-NOTICE:  drop cascades to function echo(text)
-NOTICE:  drop cascades to function vec(double precision,double precision)
-NOTICE:  drop cascades to function vec(double precision[])
-NOTICE:  drop cascades to function paste(text[],text[],text)
-NOTICE:  drop cascades to function throw_notice(text)
-NOTICE:  drop cascades to function pg_test_install(text)
-NOTICE:  drop cascades to function rfloat8(double precision)
-NOTICE:  drop cascades to function rfloat4(real)
-NOTICE:  drop cascades to function rbool(boolean)
-NOTICE:  drop cascades to function rint8(bigint)
-NOTICE:  drop cascades to function rint4(integer)
-NOTICE:  drop cascades to function rint2(smallint)
-NOTICE:  drop cascades to function r_version()
-NOTICE:  drop cascades to function load_r_typenames()
-NOTICE:  drop cascades to function r_typenames()
+NOTICE:  drop cascades to 69 other objects
+DETAIL:  drop cascades to language plr
+drop cascades to extension plr
+drop cascades to function rint2(smallint)
+drop cascades to function rint4(integer)
+drop cascades to function rint8(bigint)
+drop cascades to function rbool(boolean)
+drop cascades to function rfloat4(real)
+drop cascades to function rfloat8(double precision)
+drop cascades to function pg_test_install(text)
+drop cascades to function pg_test_module_load(text)
+drop cascades to function throw_notice(text)
+drop cascades to function paste(text[],text[],text)
+drop cascades to function vec(double precision[])
+drop cascades to function vec(double precision,double precision)
+drop cascades to function echo(text)
+drop cascades to function reval(text)
+drop cascades to function "commandArgs"()
+drop cascades to function vec(double precision)
+drop cascades to function reval(text[])
+drop cascades to function print(text)
+drop cascades to function rcube(integer)
+drop cascades to function sd(double precision[])
+drop cascades to function mean(double precision[])
+drop cascades to function sprintf(text,text,text)
+drop cascades to function r_median(double precision[])
+drop cascades to function "median"(double precision)
+drop cascades to function test_vt()
+drop cascades to function test_vi()
+drop cascades to function test_mt()
+drop cascades to function test_mi()
+drop cascades to function test_dt()
+drop cascades to function test_di()
+drop cascades to function test_vta()
+drop cascades to function test_via()
+drop cascades to function test_mta()
+drop cascades to function test_mia()
+drop cascades to function test_dia()
+drop cascades to function test_dta()
+drop cascades to function test_dta1()
+drop cascades to function test_dta2()
+drop cascades to function test_dia1()
+drop cascades to function test_dtup()
+drop cascades to function test_mtup()
+drop cascades to function test_vtup()
+drop cascades to function test_vint()
+drop cascades to function test_dtup1()
+drop cascades to function test_dtup2()
+drop cascades to function test_mtup1()
+drop cascades to function test_vtup1()
+drop cascades to function pg_quote_ident(text)
+drop cascades to function pg_quote_literal(text)
+drop cascades to function test_spi_t(text)
+drop cascades to function test_spi_ta(text)
+drop cascades to function test_spi_tup(text)
+drop cascades to function fetch_pgoid(text)
+drop cascades to function test_spi_prep(text)
+drop cascades to function test_spi_execp(text,text,text)
+drop cascades to function r_test(double precision)
+drop cascades to function r_max(integer,integer)
+drop cascades to function test_foo(foo)
+drop cascades to function test_in_m_tup(integer[])
+drop cascades to function arr3d(integer[],integer,integer,integer)
+drop cascades to function arr3d(integer[])
+drop cascades to function cursor_fetch_test(integer,boolean)
+drop cascades to function cursor_fetch_test_arg(integer)
+drop cascades to function test_serialize(text)
+drop cascades to function restore_df(bytea)
+drop cascades to function rlargeint8out(integer)
+drop cascades to function routfloat4(integer)
 DROP TYPE IF EXISTS plr_environ_type cascade; 
-NOTICE:  drop cascades to function plr_environ()
+NOTICE:  type "plr_environ_type" does not exist, skipping
 DROP TYPE IF EXISTS r_typename cascade; 
+NOTICE:  type "r_typename" does not exist, skipping
 DROP TYPE IF EXISTS r_version_type CASCADE; 
+NOTICE:  type "r_version_type" does not exist, skipping
 DROP TABLE IF EXISTS plr_modules CASCADE; 
-NOTICE:  table "plr_modules" does not exist, skipping
 DROP TYPE IF EXISTS dtup CASCADE; 
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 
-drop table if exists foo cascade; 
+DROP TABLE IF EXISTS foo CASCADE;
 NOTICE:  drop cascades to function get_foo(integer)
+DROP TABLE IF EXISTS module_test CASCADE;
 -- end_ignore
