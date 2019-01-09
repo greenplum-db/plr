@@ -26,15 +26,9 @@ function prepare_test(){
         source /usr/local/greenplum-db-devel/greenplum_path.sh
         gpstop -arf
 
-        pushd plr_src/regress
+        pushd plr_src/src
         
-        if [ "$GPDBVER" == "GPDB4.3" ]; then
-            sed -i 's/extension/contrib/g' sql/plr.sql
-            sed -i 's/extension/contrib/g' expected/plr.out
-        fi
-
-
-        \$GPHOME/lib/postgresql/pgxs/src/test/regress/pg_regress --psqldir=\$GPHOME/bin/ --load-language=plr --schedule=${TOP_DIR}/plr_src/regress/plr_schedule --inputdir=${TOP_DIR}/plr_src/regress/ --outputdir=${TOP_DIR}/plr_src/regress/
+		make USE_PGXS=1 installcheck
 
         [ -s regression.diffs ] && cat regression.diffs && exit 1
         popd
@@ -67,23 +61,6 @@ function test() {
   esac
 }
 
-function test_gpdb4() {
-	su gpadmin -c "bash /home/gpadmin/test.sh $(pwd)"
-
-    case "$OSVER" in
-    suse11)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-sles11-x86_64.gppkg
-      ;;
-    centos5)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-rhel5-x86_64.gppkg
-      ;;
-    centos6)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-rhel6-x86_64.gppkg
-      ;;
-    *) echo "Unknown OS: $OSVER"; exit 1 ;;
-    esac
-}
-
 function setup_gpadmin_user() {
     case "$OSVER" in
         suse*)
@@ -107,15 +84,7 @@ function _main() {
     
 	time make_cluster
 	time prepare_test
-    case "$GPDBVER" in
-        GPDB4.3)
-        time test_gpdb4
-        ;;
-        gp5)
-        time test
-        ;;
-        *) echo "Unknown GPDB Version: $GPDBVER"; exit 1 ;;
-    esac
+    time test
 }
 
 _main "$@"
