@@ -4,21 +4,13 @@ set -exo pipefail
 
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TOP_DIR=${CWDIR}/../../../
-if [ "$GPDBVER" == "GPDB4.3" ]; then
-    GPDB_CONCOURSE_DIR=${TOP_DIR}/gpdb_src/ci/concourse/scripts
-else
-    GPDB_CONCOURSE_DIR=${TOP_DIR}/gpdb_src/concourse/scripts
-fi
+GPDB_CONCOURSE_DIR=${TOP_DIR}/gpdb_src/concourse/scripts
+
 source "${GPDB_CONCOURSE_DIR}/common.bash"
 function prepare_test(){	
 
 	cat > /home/gpadmin/test.sh <<-EOF
 		set -exo pipefail
-
-        if [ "$OSVER" == "suse11" ]; then
-            # Official GPDB for SUSE 11 comes with very old version of glibc, getting rid of it here
-            unset LD_LIBRARY_PATH
-        fi
 
         source ${TOP_DIR}/gpdb_src/gpAux/gpdemo/gpdemo-env.sh
         source /usr/local/greenplum-db-devel/greenplum_path.sh
@@ -38,9 +30,6 @@ function prepare_test(){
 	chown -R gpadmin:gpadmin $(pwd)
 	chown gpadmin:gpadmin /home/gpadmin/test.sh
 	chmod a+x /home/gpadmin/test.sh
-	mkdir -p /usr/lib64/R/lib64
-	ln -s /usr/local/greenplum-db-devel/ext/R-3.3.3 /usr/lib64/R/lib64/R
-	chown -R gpadmin:gpadmin /usr/lib64/R/
 
 }
 
@@ -74,14 +63,16 @@ function setup_gpadmin_user() {
 	
 }
 
+function install_R()
+{
+	yum install -y R
+}
+
 function _main() {
+	time install_R
 	time install_gpdb
 	time setup_gpadmin_user
 
-    if [ "$OSVER" == "centos5" ]; then
-        rm /home/gpadmin/.ssh/config
-    fi
-    
 	time make_cluster
 	time prepare_test
     time test

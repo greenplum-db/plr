@@ -4,7 +4,6 @@ image_resource:
 inputs:
   - name: bin_gpdb
   - name: plr_src
-  - name: bin_r
   - name: gpdb_src
 
 outputs:
