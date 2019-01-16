@@ -158,6 +158,14 @@ int R_SignalHandlers = 1;  /* Exposed in R_interface.h */
 
 #define CurrentTriggerData ((TriggerData *) fcinfo->context)
 
+/*
+ * Structure for wrapping R_ParseVector call into R_TopLevelExec
+ */
+typedef struct {
+	SEXP	in, out;
+	ParseStatus status;
+} ProtectedParseData;
+
 
 /*
  * static declarations
@@ -171,6 +179,7 @@ static plr_function *compile_plr_function(FunctionCallInfo fcinfo);
 static plr_function *do_compile(FunctionCallInfo fcinfo,
 								HeapTuple procTup,
 								plr_func_hashkey *hashkey);
+static void plr_protected_parse(void* data);
 static SEXP plr_parse_func_body(const char *body);
 static SEXP plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallInfo fcinfo);
 static void plr_error_callback(void *arg);
@@ -1384,7 +1393,7 @@ do_compile(FunctionCallInfo fcinfo,
 		appendStringInfo(proc_internal_def, "%s(%s)}",
 						 function->proname,
 						 proc_internal_args->data);
-	function->fun = plr_parse_func_body(proc_internal_def->data);
+	function->fun = VECTOR_ELT(plr_parse_func_body(proc_internal_def->data), 0);
 
 	R_PreserveObject(function->fun);
 
@@ -1412,25 +1421,23 @@ do_compile(FunctionCallInfo fcinfo,
 	return function;
 }
 
+static void
+plr_protected_parse(void* data)
+{
+	ProtectedParseData *ppd = (ProtectedParseData*) data;
+	ppd->out = R_PARSEVECTOR(ppd->in, -1, &ppd->status);
+}
+
+
 static SEXP
 plr_parse_func_body(const char *body)
 {
-	SEXP	rbody;
-	SEXP	fun;
-    SEXP	tmp;
-	int		status;
+	ProtectedParseData ppd = { mkString(body), NULL, PARSE_NULL };
 
-	PROTECT(rbody = mkString(body));
-	PROTECT(tmp = R_PARSEVECTOR(rbody, -1, &status));
+	R_ToplevelExec(plr_protected_parse, &ppd);
 
-	if (tmp != R_NilValue)
-		PROTECT(fun = VECTOR_ELT(tmp, 0));
-	else
-		PROTECT(fun = R_NilValue);
-
-	if (status != PARSE_OK)
+	if (ppd.status != PARSE_OK)
 	{
-		UNPROTECT(3);
 		if (last_R_error_msg)
 			ereport(ERROR,
 					(errcode(ERRCODE_DATA_EXCEPTION),
@@ -1444,8 +1451,7 @@ plr_parse_func_body(const char *body)
 							   "in \"%s\".", body)));
 	}
 
-	UNPROTECT(3);
-	return(fun);
+	return ppd.out;
 }
 
 SEXP
