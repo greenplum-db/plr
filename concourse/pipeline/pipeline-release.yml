@@ -201,3 +201,18 @@ jobs:
       OSVER: centos7
       GPDBVER: gp6
 
+- name: manual_push_centos7_release
+  plan:
+  - aggregate:
+    - get: plr_gpdb_centos7_release_candidate
+  - put: plr_gpdb_centos7_release
+    params:
+	  file: plr_gpdb_centos7_release_candidate/plr-*.gppkg
+
+- name: manual_push_centos6_release
+  plan:
+  - aggregate:
+    - get: plr_gpdb_centos6_release_candidate
+  - put: plr_gpdb_centos6_release
+    params:
+	  file: plr_gpdb_centos6_release_candidate/plr-*.gppkg
