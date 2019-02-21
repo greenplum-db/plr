@@ -38,13 +38,13 @@ function test() {
 
     case "$OSVER" in
     suse11)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-sles11-x86_64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-sles11.gppkg
       ;;
     centos6)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-rhel6-x86_64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel6.gppkg
       ;;
     centos7)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-2.3.0-$GPDBVER-rhel7-x86_64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel7.gppkg
       ;;
     *) echo "Unknown OS: $OSVER"; exit 1 ;;
   esac

@@ -61,9 +61,15 @@ resources:
   type: gcs
   source:
     json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{pl-bucket-name}}
-    region_name: us-west-1
-    versioned_file: build/gpdb6/plr/centos7/plr-devel.gppkg
+    bucket: {{gcs-bucket-intermediates}}
+    versioned_file: plr/plr-centos7/gpdb6/plr-devel.gppkg
+
+- name: plr_gpdb_centos6_build
+  type: gcs
+  source:
+    json_key: {{gcs-read-write-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    versioned_file: plr/plr-centos6/gpdb6/plr-devel.gppkg
 
 - name: bin_gpdb_centos6
   type: s3
@@ -74,13 +80,19 @@ resources:
     secret_access_key: {{bucket-secret-access-key}}
     versioned_file: bin_gpdb_centos/bin_gpdb.tar.gz
 
-- name: plr_gpdb_centos6_build
+- name: plr_gpdb_centos7_bin
   type: gcs
   source:
     json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{pl-bucket-name}}
-    region_name: us-west-1
-    versioned_file: build/gpdb6/plr/centos6/plr-devel.gppkg
+    bucket: {{gcs-bucket}}
+    versioned_file: plr/gpdb6/plr-rhel7.gppkg
+
+- name: plr_gpdb_centos6_bin
+  type: gcs
+  source:
+    json_key: {{gcs-read-write-service-account-key}}
+    bucket: {{gcs-bucket}}
+    versioned_file: plr/gpdb6/plr-rhel6.gppkg
 
 ## jobs
 ## ======================================================================
@@ -159,6 +171,8 @@ jobs:
     input_mapping:
       bin_gpdb: bin_gpdb_centos6
       bin_plr: plr_gpdb_centos6_build
+    output_mapping:
+      plr_gppkg: plr_gpdb_centos6_bin
     params:
       OSVER: centos6
       GPDBVER: gp6
@@ -179,6 +193,8 @@ jobs:
     input_mapping:
       bin_gpdb: bin_gpdb_centos7
       bin_plr: plr_gpdb_centos7_build
+    output_mapping:
+      plr_gppkg: plr_gpdb_centos7_bin
     params:
       OSVER: centos7
       GPDBVER: gp6
