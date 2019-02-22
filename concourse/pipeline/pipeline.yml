@@ -176,6 +176,10 @@ jobs:
     params:
       OSVER: centos6
       GPDBVER: gp6
+  - aggregate:
+    - put: plr_gpdb_centos6_bin
+      params:
+        file: plr_gppkg/plr-rhel6.gppkg 
 
 - name: plr_centos7_test
   plan:
@@ -198,4 +202,8 @@ jobs:
     params:
       OSVER: centos7
       GPDBVER: gp6
+  - aggregate:
+    - put: plr_gpdb_centos7_bin
+      params:
+        file: plr_gppkg/plr-rhel7.gppkg 
 
