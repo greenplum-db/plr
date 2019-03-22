@@ -1,5 +1,5 @@
 \set ECHO all
-CREATE EXTENSION plr;
+\! createlang plr -d pl_regression 
 
 -- make typenames available in the global namespace
 select load_r_typenames();
@@ -334,11 +334,7 @@ SELECT count(routfloat4(15000));
 
 --now cleaning 
 -- start_ignore
-DROP FUNCTION plr_call_handler() cascade; 
-DROP TYPE IF EXISTS plr_environ_type cascade; 
-DROP TYPE IF EXISTS r_typename cascade; 
-DROP TYPE IF EXISTS r_version_type CASCADE; 
-DROP TABLE IF EXISTS plr_modules CASCADE; 
+DROP EXTENSION plr cascade;
 DROP TYPE IF EXISTS dtup CASCADE; 
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 

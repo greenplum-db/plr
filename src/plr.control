@@ -2,4 +2,6 @@
 comment = 'load R interpreter and execute R script from within a database'
 default_version = '8.3.0.16'
 module_pathname = '$libdir/plr'
-relocatable = true
+relocatable = false
+schema = pg_catalog
+superuser = true

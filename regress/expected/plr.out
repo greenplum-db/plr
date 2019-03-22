@@ -1,5 +1,5 @@
 \set ECHO all
-CREATE EXTENSION plr;
+\! createlang plr -d pl_regression 
 -- make typenames available in the global namespace
 select load_r_typenames();
  load_r_typenames 
@@ -777,18 +777,15 @@ SELECT count(routfloat4(15000));
 
 --now cleaning 
 -- start_ignore
-DROP FUNCTION plr_call_handler() cascade; 
-NOTICE:  drop cascades to 69 other objects
-DETAIL:  drop cascades to language plr
-drop cascades to extension plr
-drop cascades to function rint2(smallint)
+DROP EXTENSION plr cascade;
+NOTICE:  drop cascades to 66 other objects
+DETAIL:  drop cascades to function rint2(smallint)
 drop cascades to function rint4(integer)
 drop cascades to function rint8(bigint)
 drop cascades to function rbool(boolean)
 drop cascades to function rfloat4(real)
 drop cascades to function rfloat8(double precision)
 drop cascades to function pg_test_install(text)
-drop cascades to function pg_test_module_load(text)
 drop cascades to function throw_notice(text)
 drop cascades to function paste(text[],text[],text)
 drop cascades to function vec(double precision[])
@@ -804,7 +801,6 @@ drop cascades to function sd(double precision[])
 drop cascades to function mean(double precision[])
 drop cascades to function sprintf(text,text,text)
 drop cascades to function r_median(double precision[])
-drop cascades to function "median"(double precision)
 drop cascades to function test_vt()
 drop cascades to function test_vi()
 drop cascades to function test_mt()
@@ -848,17 +844,12 @@ drop cascades to function test_serialize(text)
 drop cascades to function restore_df(bytea)
 drop cascades to function rlargeint8out(integer)
 drop cascades to function routfloat4(integer)
-DROP TYPE IF EXISTS plr_environ_type cascade; 
-NOTICE:  type "plr_environ_type" does not exist, skipping
-DROP TYPE IF EXISTS r_typename cascade; 
-NOTICE:  type "r_typename" does not exist, skipping
-DROP TYPE IF EXISTS r_version_type CASCADE; 
-NOTICE:  type "r_version_type" does not exist, skipping
-DROP TABLE IF EXISTS plr_modules CASCADE; 
+drop cascades to function "median"(double precision)
 DROP TYPE IF EXISTS dtup CASCADE; 
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 
 DROP TABLE IF EXISTS foo CASCADE;
 NOTICE:  drop cascades to function get_foo(integer)
 DROP TABLE IF EXISTS module_test CASCADE;
+NOTICE:  table "module_test" does not exist, skipping
 -- end_ignore
