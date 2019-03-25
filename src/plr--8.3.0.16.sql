@@ -1,6 +1,6 @@
 -- keep this in sync with the plr.sql.in legacy install file
 SET autocommit TO 'on';
-SET search_path="$user", public;
+SET search_path="$user",public;
 
 CREATE FUNCTION plr_call_handler()
 RETURNS LANGUAGE_HANDLER
