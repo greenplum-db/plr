@@ -1,5 +1,6 @@
 \set ECHO all
-\! createlang plr -d pl_regression 
+
+CREATE EXTENSION plr;
 
 -- make typenames available in the global namespace
 select load_r_typenames();
@@ -341,3 +342,8 @@ DROP TYPE IF EXISTS vtup CASCADE;
 DROP TABLE IF EXISTS foo CASCADE;
 DROP TABLE IF EXISTS module_test CASCADE;
 -- end_ignore
+
+-- test createlang
+
+\! createlang plr -d pl_regression 
+\! droplang plr -d pl_regression 
