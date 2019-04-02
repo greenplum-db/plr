@@ -9,8 +9,6 @@ groups:
     - plr_centos7_release
     - plr_centos6_test
     - plr_centos7_test
-    - manual_push_centos6_release
-    - manual_push_centos7_release
 
 resource_types:
 - name: gcs
@@ -55,7 +53,7 @@ resources:
   type: gcs
   source:
     json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{gcs-bucket}}
+    bucket: {{gcs-bucket-intermediates}}
     regexp: plr/published/gpdb6/plr-r(.*)7.gppkg
 
 - name: plr_gpdb_centos7_release
@@ -65,19 +63,12 @@ resources:
     bucket: {{gcs-bucket}}
     regexp: plr/released/gpdb6/plr-(.*)-rhel7-x86_64.gppkg
 
-- name: plr_gpdb_centos7_release_candidate
-  type: gcs
-  source:
-    json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{gcs-bucket}}
-    regexp: plr/published/gpdb6/plr-(.*)-rhel7-x86_64.gppkg
-
 - name: bin_gpdb_centos7
   type: gcs
   source:
     bucket: ((gcs-bucket-intermediates))
     json_key: ((concourse-gcs-resources-service-account-key))
-    versioned_file: gpdb_master/bin_gpdb_centos7/bin_gpdb.tar.gz
+    versioned_file: 6X_STABLE/bin_gpdb_centos7/bin_gpdb.tar.gz
 
 # centtos 6
 
@@ -85,7 +76,7 @@ resources:
   type: gcs
   source:
     json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{gcs-bucket}}
+    bucket: {{gcs-bucket-intermediates}}
     regexp: plr/published/gpdb6/plr-r(.*)6.gppkg
 
 - name: plr_gpdb_centos6_release
@@ -95,19 +86,12 @@ resources:
     bucket: {{gcs-bucket}}
     regexp: plr/released/gpdb6/plr-(.*)-rhel6-x86_64.gppkg
 
-- name: plr_gpdb_centos6_release_candidate
-  type: gcs
-  source:
-    json_key: {{gcs-read-write-service-account-key}}
-    bucket: {{gcs-bucket}}
-    regexp: plr/published/gpdb6/plr-(.*)-rhel6-x86_64.gppkg
-
 - name: bin_gpdb_centos6
   type: gcs
   source:
     bucket: ((gcs-bucket-intermediates))
     json_key: ((concourse-gcs-resources-service-account-key))
-    versioned_file: gpdb_master/bin_gpdb_centos6/bin_gpdb.tar.gz
+    versioned_file: 6X_STABLE/bin_gpdb_centos6/bin_gpdb.tar.gz
 
 ## ======================================================================
 ## jobs
@@ -130,7 +114,7 @@ jobs:
     params:
       OSVER: centos6
       GPDBVER: gp6
-  - put: plr_gpdb_centos6_release_candidate
+  - put: plr_gpdb_centos6_release
     params:
       file: plr_gpdb_centos6_release/plr-*.gppkg
 
@@ -151,7 +135,7 @@ jobs:
     params:
       OSVER: centos7
       GPDBVER: gp6
-  - put: plr_gpdb_centos7_release_candidate
+  - put: plr_gpdb_centos7_release
     params:
       file: plr_gpdb_centos7_release/plr-*.gppkg
 
@@ -193,49 +177,3 @@ jobs:
       OSVER: centos7
       GPDBVER: gp6
 
-- name: manual_push_centos7_release
-  plan:
-  - aggregate:
-    - get: centos-gpdb-dev-7
-    - get: plr_gpdb_centos7_release_candidate
-  - task: Copy_GPPKG
-    image: centos-gpdb-dev-7
-    config:
-      platform: linux
-      inputs:
-       - name: plr_gpdb_centos7_release_candidate
-      outputs:
-       - name: plr_gpdb_centos7_release
-      run:
-          path: "sh"
-          args:
-            - -exc
-            - |
-              cp plr_gpdb_centos7_release_candidate/plr-*.gppkg plr_gpdb_centos7_release/
-  - put: plr_gpdb_centos7_release
-    params:
-      file: plr_gpdb_centos7_release/plr-*.gppkg
-
-
-- name: manual_push_centos6_release
-  plan:
-  - aggregate:
-    - get: centos-gpdb-dev-6
-    - get: plr_gpdb_centos6_release_candidate
-  - task: Copy_GPPKG
-    image: centos-gpdb-dev-6
-    config:
-      platform: linux
-      inputs:
-       - name: plr_gpdb_centos6_release_candidate
-      outputs:
-       - name: plr_gpdb_centos6_release
-      run:
-          path: "sh"
-          args:
-            - -exc
-            - |
-              cp plr_gpdb_centos6_release_candidate/plr-*.gppkg plr_gpdb_centos6_release/
-  - put: plr_gpdb_centos6_release
-    params:
-      file: plr_gpdb_centos6_release/plr-*.gppkg
