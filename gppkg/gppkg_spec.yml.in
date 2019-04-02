@@ -9,7 +9,7 @@ PostInstall:
           echo '==========================================================================';
           echo 'PL/R installation is complete! To proceed, follow these steps:';
           echo '1. Source your new $GPHOME/greenplum_path.sh file and restart the database.';
-          echo '2. Create PL/R language in the target database with \"createlang plr -d mydatabase\"';
+          echo '2. Create PL/R language in the target database with \"create extension plr;\"';
           echo '3. Optionally you can enable PL/R helper functions in this database by running ';
           echo '    \"psql -f $GPHOME/share/postgresql/extension/plr.sql -d mydatabase\"';
           echo '==========================================================================';"
