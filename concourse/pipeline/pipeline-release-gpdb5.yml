@@ -39,7 +39,7 @@ resources:
 - name: plr_src
   type: git
   source:
-    branch: master
+    branch: gpdb5
     uri: https://github.com/greenplum-db/plr.git
     tag_filter: 2.*
 
