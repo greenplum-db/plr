@@ -52,14 +52,14 @@ resources:
 - name: plr_gpdb_centos7_build
   type: gcs
   source:
-    json_key: {{gcs-read-write-service-account-key}}
+    json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
     regexp: plr/published/gpdb6/plr-r(.*)7.gppkg
 
 - name: plr_gpdb_centos7_release
   type: gcs
   source:
-    json_key: {{gcs-read-write-service-account-key}}
+    json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket}}
     regexp: plr/released/gpdb6/plr-(.*)-rhel7-x86_64.gppkg
 
@@ -75,14 +75,14 @@ resources:
 - name: plr_gpdb_centos6_build
   type: gcs
   source:
-    json_key: {{gcs-read-write-service-account-key}}
+    json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
     regexp: plr/published/gpdb6/plr-r(.*)6.gppkg
 
 - name: plr_gpdb_centos6_release
   type: gcs
   source:
-    json_key: {{gcs-read-write-service-account-key}}
+    json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket}}
     regexp: plr/released/gpdb6/plr-(.*)-rhel6-x86_64.gppkg
 
