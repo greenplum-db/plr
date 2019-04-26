@@ -8,7 +8,13 @@ ARCH=$(shell uname -p)
 
 RPM_ARGS=$(subst -, ,$*)
 RPM_NAME=$(word 1,$(RPM_ARGS))
+PLR_RPM=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).rpm
+PLR_RPM_FLAGS="--define 'plr_dir $(PLR_DIR)/src' --define 'plr_ver $(PLR_VER)' --define 'plr_rel $(PLR_REL)' --define 'r_ver $(R_VER)' --define 'r_dir $(R_HOME)'"
 PWD=$(shell pwd)
+
+.PHONY: distro
+distro: $(TARGET_GPPKG)
+
 %.rpm: 
 	rm -rf RPMS BUILD SPECS
 	mkdir RPMS BUILD SPECS
@@ -17,10 +23,7 @@ PWD=$(shell pwd)
 	mv RPMS/$(ARCH)/$*.rpm .
 	rm -rf RPMS BUILD SPECS
 
-gppkg_spec.yml: gppkg_spec.yml.in
-	cat $< | sed "s/#arch/$(ARCH)/g" | sed "s/#os/$(OS)/g" | sed 's/#gpver/$(GP_VERSION_NUM)/g' | sed "s/#gppkgver/$(GPPKG_VERSION)/g"> $@ > $@
-
-%.gppkg: gppkg_spec.yml $(MAIN_RPM) $(DEPENDENT_RPMS)
+%.gppkg: $(MAIN_RPM) $(DEPENDENT_RPMS)
 	mkdir -p gppkg/deps 
 	cp gppkg_spec.yml gppkg/
 	cp $(MAIN_RPM) gppkg/ 
@@ -30,7 +33,6 @@ ifdef DEPENDENT_RPMS
 	done
 endif
 	source $(GPHOME)/greenplum_path.sh && gppkg --build gppkg 
-	rm -rf gppkg
 
 clean:
 	rm -rf RPMS BUILD SPECS
