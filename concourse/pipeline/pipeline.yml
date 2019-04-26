@@ -7,6 +7,7 @@ groups:
   jobs:
     - plr_centos7_build
     - plr_centos6_build
+    - plr_ubuntu18_build
     - plr_centos6_test
     - plr_centos7_test
 
@@ -32,6 +33,12 @@ resources:
     repository: pivotaldata/centos-gpdb-dev
     tag: '7-gcc6.2-llvm3.7'
 
+- name: ubuntu18_img
+  type: docker-image
+  source:
+    repository: pivotaldata/ubuntu-gpdb-dev
+    tag: '16.04'
+
 # Github Source Codes
 
 - name: gpdb_src
@@ -55,6 +62,22 @@ resources:
     json_key: ((concourse-gcs-resources-service-account-key))
     versioned_file: 6X_STABLE/bin_gpdb_centos7/bin_gpdb.tar.gz
 
+- name: bin_gpdb_centos6
+  type: gcs
+  source:
+    bucket: ((gcs-bucket-intermediates))
+    json_key: ((concourse-gcs-resources-service-account-key))
+    versioned_file: 6X_STABLE/bin_gpdb_centos6/bin_gpdb.tar.gz
+
+- name: bin_gpdb_ubuntu18
+  type: s3
+  source:
+    access_key_id: {{bucket-access-key-id}}
+    bucket: {{bucket-name}}
+    region_name: {{aws-region}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: build/gpdb_6x/bin_gpdb_ubuntu16/bin_gpdb.tar.gz
+
 - name: plr_gpdb_centos7_build
   type: gcs
   source:
@@ -69,12 +92,12 @@ resources:
     bucket: {{gcs-bucket-intermediates}}
     versioned_file: plr/plr-centos6/gpdb6/plr-devel.gppkg
 
-- name: bin_gpdb_centos6
+- name: plr_gpdb_ubuntu18_build
   type: gcs
   source:
-    bucket: ((gcs-bucket-intermediates))
-    json_key: ((concourse-gcs-resources-service-account-key))
-    versioned_file: 6X_STABLE/bin_gpdb_centos6/bin_gpdb.tar.gz
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    versioned_file: plr/plr-ubuntu18/gpdb6/plr-devel.gppkg
 
 - name: plr_gpdb_centos7_bin
   type: gcs
@@ -89,6 +112,13 @@ resources:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
     regexp: plr/published/gpdb6/plr-rhel6.gppkg
+
+- name: plr_gpdb_ubuntu18_bin
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    regexp: plr/published/gpdb6/plr-ubuntu18.gppkg
 
 ## jobs
 ## ======================================================================
@@ -148,6 +178,31 @@ jobs:
     - put: plr_gpdb_centos6_build
       params:
         file: plr_gpdb_centos6_build/plr-*.gppkg
+
+- name: plr_ubuntu18_build
+  max_in_flight: 3
+  plan:
+  - aggregate:
+    - get: ubuntu18-image
+    - get: plr_src
+      trigger: true
+    - get: bin_gpdb
+      resource: bin_gpdb_ubuntu18
+    - get: gpdb_src
+      trigger: true
+  - aggregate:
+    - task: Build_PLR
+      file: plr_src/concourse/tasks/build_plr.yml
+      image: ubuntu18-image
+      output_mapping:
+        bin_plr: plr_gpdb_ubuntu18_build
+      params:
+        OSVER: ubuntu18
+        GPDBVER: gp6
+  - aggregate:
+    - put: plr_gpdb_ubuntu18_build
+      params:
+        file: plr_gpdb_ubuntu18_build/plr-*.gppkg
 
 # Test PL/R GPPKG
 
