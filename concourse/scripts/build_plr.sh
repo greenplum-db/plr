@@ -32,7 +32,7 @@ function pkg() {
     which R
     echo "R_HOME='$R_HOME'"
     
-    source /opt/gcc_env.sh
+    [ -f /opt/gcc_env.sh ] && source /opt/gcc_env.sh
     source /usr/local/greenplum-db-devel/greenplum_path.sh
 
     export USE_PGXS=1

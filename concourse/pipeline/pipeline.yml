@@ -10,6 +10,7 @@ groups:
     - plr_ubuntu18_build
     - plr_centos6_test
     - plr_centos7_test
+    - plr_ubuntu18_test
 
 resource_types:
 - name: gcs
@@ -33,7 +34,7 @@ resources:
     repository: pivotaldata/centos-gpdb-dev
     tag: '7-gcc6.2-llvm3.7'
 
-- name: ubuntu18_img
+- name: ubuntu18-image
   type: docker-image
   source:
     repository: pivotaldata/ubuntu-gpdb-dev
@@ -51,7 +52,7 @@ resources:
   type: git
   source:
     branch: gpdb6
-    uri: https://github.com/greenplum-db/plr.git
+    uri: https://github.com/gfphoenix78/plr.git
 
 # centos 7
 
@@ -230,7 +231,7 @@ jobs:
   - aggregate:
     - put: plr_gpdb_centos6_bin
       params:
-        file: plr_gpdb_centos6_bin/plr-rhel6.gppkg 
+        file: plr_gpdb_centos6_bin/plr-rhel6.gppkg
 
 - name: plr_centos7_test
   plan:
@@ -256,5 +257,31 @@ jobs:
   - aggregate:
     - put: plr_gpdb_centos7_bin
       params:
-        file: plr_gpdb_centos7_bin/plr-rhel7.gppkg 
+        file: plr_gpdb_centos7_bin/plr-rhel7.gppkg
+
+- name: plr_ubuntu18_test
+  plan:
+  - aggregate:
+    - get: ubuntu18-image
+    - get: plr_src
+    - get: plr_gpdb_ubuntu18_build
+      passed: [plr_ubuntu18_build]
+      trigger: true
+    - get: bin_gpdb
+      resource: bin_gpdb_ubuntu18
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: ubuntu18-image
+    input_mapping:
+      bin_plr: plr_gpdb_ubuntu18_build
+    output_mapping:
+      plr_gppkg: plr_gpdb_ubuntu18_bin
+    params:
+      OSVER: ubuntu18
+      GPDBVER: gp6
+  - aggregate:
+    - put: plr_gpdb_ubuntu18_bin
+      params:
+        file: plr/plr-*.gppkg
 
