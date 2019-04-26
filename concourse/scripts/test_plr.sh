@@ -46,6 +46,9 @@ function test() {
     centos7)
         cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel7.gppkg
       ;;
+    ubuntu18)
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr_ubuntu18.gppkg
+      ;;
     *) echo "Unknown OS: $OSVER"; exit 1 ;;
   esac
 }
@@ -57,6 +60,9 @@ function setup_gpadmin_user() {
         ;;
         centos*)
         ${GPDB_CONCOURSE_DIR}/setup_gpadmin_user.bash "centos"
+        ;;
+        ubuntu*)
+        ${GPDB_CONCOURSE_DIR}/setup_gpadmin_user.bash "ubuntu"
         ;;
         *) echo "Unknown OS: $OSVER"; exit 1 ;;
     esac
