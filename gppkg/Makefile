@@ -1,6 +1,5 @@
-ifneq (,${R_HOME})
-
 SHELL=/bin/bash
+R_HOME=$(R RHOME)
 all: gppkg
 
 PGXS := $(shell pg_config --pgxs)
@@ -39,12 +38,3 @@ cleanall: clean
 	rm -rf $(PLR_RPM)
 	rm -rf $(PLR_GPPKG)
 
-else
-
-all:
-	@echo ""; \
-	 echo "*** Cannot build PL/R because R_HOME cannot be found." ; \
-	 echo "*** Refer to the documentation for details."; \
-	 echo ""
-
-endif
