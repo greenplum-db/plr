@@ -7,8 +7,10 @@ groups:
   jobs:
     - plr_centos6_release
     - plr_centos7_release
+    - plr_ubuntu18_release
     - plr_centos6_test
     - plr_centos7_test
+    - plr_ubuntu18_test
 
 resource_types:
 - name: gcs
@@ -31,6 +33,12 @@ resources:
   source:
     repository: pivotaldata/centos-gpdb-dev
     tag: '7-gcc6.2-llvm3.7'
+
+- name: ubuntu18-image
+  type: docker-image
+  source:
+    repository: pivotaldata/ubuntu-gpdb-dev
+    tag: '16.04'
 
 # Github Source Codes
 
@@ -70,7 +78,7 @@ resources:
     json_key: ((concourse-gcs-resources-service-account-key))
     versioned_file: 6X_STABLE/bin_gpdb_centos7/bin_gpdb.tar.gz
 
-# centtos 6
+# centos 6
 
 - name: plr_gpdb_centos6_build
   type: gcs
@@ -93,6 +101,31 @@ resources:
     json_key: ((concourse-gcs-resources-service-account-key))
     versioned_file: 6X_STABLE/bin_gpdb_centos6/bin_gpdb.tar.gz
 
+# ubuntu 18
+
+- name: plr_gpdb_ubuntu18_build
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    regexp: plr/published/gpdb6/plr-ubuntu18.gppkg
+
+- name: plr_gpdb_ubuntu18_release
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket}}
+    regexp: plr/released/gpdb6/plr-(.*)-ubuntu18-amd64.gppkg
+
+- name: bin_gpdb_ubuntu18
+  type: s3
+  source:
+    access_key_id: {{bucket-access-key-id}}
+    bucket: {{bucket-name}}
+    region_name: {{aws-region}}
+    secret_access_key: {{bucket-secret-access-key}}
+    versioned_file: build/gpdb_6x/bin_gpdb_ubuntu16/bin_gpdb.tar.gz
+
 ## ======================================================================
 ## jobs
 ## ======================================================================
@@ -103,12 +136,11 @@ jobs:
     - get: centos-gpdb-dev-6
     - get: plr_src
       trigger: true
-    - get: plr_gpdb_centos6_build
+    - get: bin_plr
+      resource: plr_gpdb_centos6_build
   - task: release_PLR
     file: plr_src/concourse/tasks/release_plr.yml
     image: centos-gpdb-dev-6
-    input_mapping:
-      bin_plr: plr_gpdb_centos6_build
     output_mapping:
         plr_gppkg: plr_gpdb_centos6_release
     params:
@@ -124,12 +156,11 @@ jobs:
     - get: centos-gpdb-dev-7
     - get: plr_src
       trigger: true
-    - get: plr_gpdb_centos7_build
+    - get: bin_plr
+      resource: plr_gpdb_centos7_build
   - task: release_PLR
     file: plr_src/concourse/tasks/release_plr.yml
     image: centos-gpdb-dev-7
-    input_mapping:
-      bin_plr: plr_gpdb_centos7_build
     output_mapping:
       plr_gppkg: plr_gpdb_centos7_release
     params:
@@ -139,41 +170,80 @@ jobs:
     params:
       file: plr_gpdb_centos7_release/plr-*.gppkg
 
+- name: plr_ubuntu18_release
+  plan:
+  - aggregate:
+    - get: ubuntu18-image
+    - get: plr_src
+      trigger: true
+    - get: bin_plr
+      resource: plr_gpdb_ubuntu18_build
+  - task: release_PLR
+    file: plr_src/concourse/tasks/release_plr.yml
+    image: ubuntu18-image
+    output_mapping:
+      plr_gppkg: plr_gpdb_ubuntu18_release
+    params:
+      OSVER: ubuntu18
+      GPDBVER: gp6
+  - put: plr_gpdb_ubuntu18_release
+    params:
+      file: plr_gpdb_ubuntu18_release/plr-*.gppkg
+
 - name: plr_centos6_test
   plan:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
-    - get: plr_gpdb_centos6_release
-    - get: bin_gpdb_centos6
+    - get: bin_plr
+      resource: plr_gpdb_centos6_release
+    - get: bin_gpdb
+      resource: bin_gpdb_centos6
       trigger: true
     - get: gpdb_src
   - task: Test_PLR
     file: plr_src/concourse/tasks/test_plr.yml
     image: centos-gpdb-dev-6
-    input_mapping:
-      bin_gpdb: bin_gpdb_centos6
-      bin_plr: plr_gpdb_centos6_release
     params:
       OSVER: centos6
       GPDBVER: gp6
+      BLDARCH: rhel7_x86_64
 
 - name: plr_centos7_test
   plan:
   - aggregate:
     - get: centos-gpdb-dev-7
     - get: plr_src
-    - get: plr_gpdb_centos7_release
-    - get: bin_gpdb_centos7
+    - get: bin_plr
+      resource: plr_gpdb_centos7_release
+    - get: bin_gpdb
+      resource: bin_gpdb_centos7
       trigger: true
     - get: gpdb_src
   - task: Test_PLR
     file: plr_src/concourse/tasks/test_plr.yml
     image: centos-gpdb-dev-7
-    input_mapping:
-      bin_gpdb: bin_gpdb_centos7
-      bin_plr: plr_gpdb_centos7_release
     params:
       OSVER: centos7
       GPDBVER: gp6
+      BLDARCH: rhel6_x86_64
+
+- name: plr_ubuntu18_test
+  plan:
+  - aggregate:
+    - get: ubuntu18-image
+    - get: plr_src
+    - get: bin_plr
+      resource: plr_gpdb_ubuntu18_release
+    - get: bin_gpdb
+      resource: bin_gpdb_ubuntu18
+      trigger: true
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: ubuntu18-image
+    params:
+      OSVER: ubuntu18
+      GPDBVER: gp6
+      BLDARCH: ubuntu18_amd64
 
