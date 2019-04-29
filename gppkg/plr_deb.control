@@ -1,0 +1,7 @@
+Package: plr
+Version: #version
+Section: base
+Priority: optional
+Architecture: #arch
+Description: PL/R
+  The PL/R modules provides Procedural language implementation of R for Greenplum Database.

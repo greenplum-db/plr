@@ -11,8 +11,9 @@ ARCH=amd64
 endif
 
 include release.mk
+CONTROL_NAME=plr_deb.control
 PLR_DEB=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).deb
-
+TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(ARCH).gppkg
 PWD=$(shell pwd)
 
 .PHONY: distro
@@ -21,7 +22,7 @@ distro: $(TARGET_GPPKG)
 %.deb:
 	rm -rf UBUNTU 2>/dev/null
 	mkdir UBUNTU/DEBIAN -p
-	cat $(PWD)/$(CONTROL_NAME) | sed -r "s|#version|$(PLR_VER)-$(PLR_REL)|" | sed -r "s|#arch|$(ARCH)|" > $(PWD)/UBUNTU/DEBIAN/control
+	cat $(PWD)/$(CONTROL_NAME) | sed -r "s|#version|$(PLR_VER).$(PLR_REL)|" | sed -r "s|#arch|$(ARCH)|" > $(PWD)/UBUNTU/DEBIAN/control
 	$(MAKE) -C $(PLR_DIR) install DESTDIR=$(PWD)/UBUNTU libdir=/lib/postgresql pkglibdir=/lib/postgresql datadir=/share/postgresql
 	dpkg-deb --build $(PWD)/UBUNTU "$(PLR_DEB)"
 
@@ -40,4 +41,3 @@ endif
 clean:
 	rm -rf UBUNTU
 	rm -rf gppkg
-	rm -f gppkg_spec.yml
