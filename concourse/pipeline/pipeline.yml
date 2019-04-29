@@ -199,6 +199,7 @@ jobs:
         bin_plr: plr_gpdb_ubuntu18_build
       params:
         OSVER: ubuntu18
+        BLD_ARCH: ubuntu18_amd64
         GPDBVER: gp6
   - aggregate:
     - put: plr_gpdb_ubuntu18_build
@@ -279,6 +280,7 @@ jobs:
       plr_gppkg: plr_gpdb_ubuntu18_bin
     params:
       OSVER: ubuntu18
+      BLD_ARCH: ubuntu18_amd64
       GPDBVER: gp6
   - aggregate:
     - put: plr_gpdb_ubuntu18_bin
