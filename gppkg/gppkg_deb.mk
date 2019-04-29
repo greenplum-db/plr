@@ -13,7 +13,7 @@ endif
 include release.mk
 CONTROL_NAME=plr_deb.control
 PLR_DEB=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).deb
-TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(ARCH).gppkg
+TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(GPDBVER)-$(ARCH).gppkg
 PWD=$(shell pwd)
 
 .PHONY: distro

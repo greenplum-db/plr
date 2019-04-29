@@ -10,7 +10,7 @@ RPM_ARGS=$(subst -, ,$*)
 RPM_NAME=$(word 1,$(RPM_ARGS))
 PLR_RPM=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).rpm
 PLR_RPM_FLAGS= --define 'plr_dir $(PLR_DIR)/src' --define 'plr_ver $(PLR_VER)' --define 'plr_rel $(PLR_REL)' --define 'r_ver $(R_VER)' --define 'r_dir $(R_HOME)'
-TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(ARCH).gppkg
+TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(GPDBVER)-$(ARCH).gppkg
 PWD=$(shell pwd)
 
 .PHONY: distro
