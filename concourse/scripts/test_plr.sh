@@ -47,7 +47,7 @@ function test() {
         cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel7.gppkg
       ;;
     ubuntu18)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr_ubuntu18.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-ubuntu18.gppkg
       ;;
     *) echo "Unknown OS: $OSVER"; exit 1 ;;
   esac

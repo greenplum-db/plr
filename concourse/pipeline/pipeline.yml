@@ -262,7 +262,7 @@ jobs:
   - aggregate:
     - put: plr_gpdb_centos7_bin
       params:
-        file: plr_gpdb_centos7_bin/plr-rhel7.gppkg
+        file: plr_gppkg/plr-rhel7.gppkg
 
 - name: plr_ubuntu18_test
   plan:
@@ -289,5 +289,5 @@ jobs:
   - aggregate:
     - put: plr_gpdb_ubuntu18_bin
       params:
-        file: plr/plr-*.gppkg
+        file: plr_gppkg/plr-*.gppkg
 
