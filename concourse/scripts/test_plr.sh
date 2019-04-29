@@ -71,7 +71,19 @@ function setup_gpadmin_user() {
 
 function install_R()
 {
-	yum install -y R
+case $OSVER in
+centos*)
+    yum install -y R pkg-config
+    ;;
+ubuntu*)
+    apt update
+    apt install -y r-base pkg-config
+    ;;
+*)
+    echo "unknown OSVER = $OSVER"
+    exit 1
+    ;;
+esac
 }
 
 function _main() {

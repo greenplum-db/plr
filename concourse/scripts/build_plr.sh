@@ -12,15 +12,16 @@ source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
 function install_R() {
 case $OSVER in
 centos*)
-	yum install -y R pkg-config
-	;;
+    yum install -y R pkg-config
+    ;;
 ubuntu*)
-	apt update
-	apt install -y r-base pkg-config
-	;;
+    apt update
+    apt install -y r-base pkg-config
+    ;;
 *)
-	echo "unknown OSVER = $OSVER"
-	;;
+    echo "unknown OSVER = $OSVER"
+    exit 1
+    ;;
 esac
 }
 

@@ -15,6 +15,9 @@ function release_gpdb() {
     centos7)
         cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel7-x86_64.gppkg
       ;;
+    ubuntu18)
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-ubuntu18-amd64.gppkg
+      ;;
     *) echo "Unknown OS: $OSVER"; exit 1 ;;
   esac
 }
