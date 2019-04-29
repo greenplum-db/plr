@@ -1,6 +1,8 @@
 SHELL=/bin/bash
-R_HOME=$(R RHOME)
+R_HOME=$(shell R RHOME)
 export R_HOME
+R_VER=$(shell R --version | sed -nr 's/.*version\s+([0-9.]+)\s+.*/\1/p')
+export R_VER
 
 # default target
 all: gppkg
@@ -26,12 +28,12 @@ ifeq ($(OS0), ubuntu)
 include gppkg_deb.mk
 endif
 
-.PHONY: gppkg
+.PHONY: gppkg gppkg_spec.yml distro
 gppkg: clean gppkg_spec.yml distro
 
 gppkg_spec.yml: gppkg_spec.yml.in
 	cat $< | sed "s/#arch/$(ARCH)/g" | sed "s/#os/$(OS)/g" | sed 's/#gpver/$(GP_VERSION_NUM)/g' | sed "s/#gppkgver/$(PLR_VER).$(PLR_REL)/g" > $@
 
-.PHONY: cleanall
+.PHONY: cleanall clean
 cleanall: clean
 
