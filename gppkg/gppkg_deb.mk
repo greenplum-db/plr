@@ -23,7 +23,7 @@ distro: $(TARGET_GPPKG)
 	rm -rf UBUNTU 2>/dev/null
 	mkdir UBUNTU/DEBIAN -p
 	cat $(PWD)/$(CONTROL_NAME) | sed -r "s|#version|$(PLR_VER).$(PLR_REL)|" | sed -r "s|#arch|$(ARCH)|" > $(PWD)/UBUNTU/DEBIAN/control
-	$(MAKE) -C $(PLR_DIR) install DESTDIR=$(PWD)/UBUNTU libdir=/lib/postgresql pkglibdir=/lib/postgresql datadir=/share/postgresql
+	$(MAKE) -C $(PLR_DIR)/src install DESTDIR=$(PWD)/UBUNTU libdir=/lib/postgresql pkglibdir=/lib/postgresql datadir=/share/postgresql
 	dpkg-deb --build $(PWD)/UBUNTU "$(PLR_DEB)"
 
 %.gppkg: $(PLR_DEB) $(DEPENDENT_DEBS)
