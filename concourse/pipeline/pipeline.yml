@@ -135,15 +135,14 @@ jobs:
     - get: centos-gpdb-dev-7
     - get: plr_src
       trigger: true
-    - get: bin_gpdb_centos7
+    - get: bin_gpdb
+      resource: bin_gpdb_centos7
     - get: gpdb_src
       trigger: true
   - aggregate:
     - task: Build_PLR
       file: plr_src/concourse/tasks/build_plr.yml
       image: centos-gpdb-dev-7
-      input_mapping:
-        bin_gpdb: bin_gpdb_centos7
       output_mapping:
         bin_plr: plr_gpdb_centos7_build
       params:
@@ -162,15 +161,14 @@ jobs:
     - get: centos-gpdb-dev-6
     - get: plr_src
       trigger: true
-    - get: bin_gpdb_centos6
+    - get: bin_gpdb
+      resource: bin_gpdb_centos6
     - get: gpdb_src
       trigger: true
   - aggregate:
     - task: Build_PLR
       file: plr_src/concourse/tasks/build_plr.yml
       image: centos-gpdb-dev-6
-      input_mapping:
-        bin_gpdb: bin_gpdb_centos6
       output_mapping:
         bin_plr: plr_gpdb_centos6_build
       params:
@@ -215,17 +213,16 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-6
     - get: plr_src
-    - get: plr_gpdb_centos6_build
+    - get: bin_plr
+      resource: plr_gpdb_centos6_build
       passed: [plr_centos6_build]
       trigger: true
-    - get: bin_gpdb_centos6
+    - get: bin_gpdb
+      resource: bin_gpdb_centos6
     - get: gpdb_src
   - task: Test_PLR
     file: plr_src/concourse/tasks/test_plr.yml
     image: centos-gpdb-dev-6
-    input_mapping:
-      bin_gpdb: bin_gpdb_centos6
-      bin_plr: plr_gpdb_centos6_build
     output_mapping:
       plr_gppkg: plr_gpdb_centos6_bin
     params:
@@ -242,17 +239,16 @@ jobs:
   - aggregate:
     - get: centos-gpdb-dev-7
     - get: plr_src
-    - get: plr_gpdb_centos7_build
+    - get: bin_plr
+      resource: plr_gpdb_centos7_build
       passed: [plr_centos7_build]
       trigger: true
-    - get: bin_gpdb_centos7
+    - get: bin_gpdb
+      resource: bin_gpdb_centos7
     - get: gpdb_src
   - task: Test_PLR
     file: plr_src/concourse/tasks/test_plr.yml
     image: centos-gpdb-dev-7
-    input_mapping:
-      bin_gpdb: bin_gpdb_centos7
-      bin_plr: plr_gpdb_centos7_build
     output_mapping:
       plr_gppkg: plr_gpdb_centos7_bin
     params:
@@ -269,7 +265,8 @@ jobs:
   - aggregate:
     - get: ubuntu18-image
     - get: plr_src
-    - get: plr_gpdb_ubuntu18_build
+    - get: bin_plr
+      resource: plr_gpdb_ubuntu18_build
       passed: [plr_ubuntu18_build]
       trigger: true
     - get: bin_gpdb
@@ -278,8 +275,6 @@ jobs:
   - task: Test_PLR
     file: plr_src/concourse/tasks/test_plr.yml
     image: ubuntu18-image
-    input_mapping:
-      bin_plr: plr_gpdb_ubuntu18_build
     output_mapping:
       plr_gppkg: plr_gpdb_ubuntu18_bin
     params:
