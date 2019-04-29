@@ -13,3 +13,4 @@ run:
 params:
   OSVER:
   GPDBVER:
+  BLDARCH:

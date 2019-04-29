@@ -3,7 +3,7 @@ include $(PGXS)
 
 GP_VERSION_NUM := $(GP_MAJORVERSION)
 
-OS=$(word 1,$(subst _, ,$(BLD_ARCH)))
+OS=$(word 1,$(subst _, ,$(BLDARCH)))
 ARCH=$(shell uname -p)
 
 RPM_ARGS=$(subst -, ,$*)

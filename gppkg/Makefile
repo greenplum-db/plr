@@ -10,7 +10,7 @@ all: gppkg
 PGXS := $(shell pg_config --pgxs)
 include $(PGXS)
 
-OS=$(word 1,$(subst _, ,$(BLD_ARCH)))
+OS=$(word 1,$(subst _, ,$(BLDARCH)))
 ARCH=$(shell uname -p)
 
 PLR_DIR=$(shell cd .. && pwd)
