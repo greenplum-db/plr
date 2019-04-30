@@ -52,7 +52,7 @@ resources:
   type: git
   source:
     branch: gpdb6
-    uri: https://github.com/gfphoenix78/plr.git
+    uri: https://github.com/greenplum-db/plr.git
 
 # centos 7
 
