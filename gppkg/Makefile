@@ -20,11 +20,11 @@ include $(PLR_DIR)/gppkg/release.mk
 #
 # Generic rules to build gppkgs included here
 #
-OS0=$(shell echo $(OS) | sed -n "s/[0-9]\+//p")
-ifeq ($(OS0), rhel)
+OSNAME=$(shell echo $(OS) | sed -n "s/[0-9]\+//p")
+ifeq ($(OSNAME), rhel)
 include gppkg_rpm.mk
 endif
-ifeq ($(OS0), ubuntu)
+ifeq ($(OSNAME), ubuntu)
 include gppkg_deb.mk
 endif
 
