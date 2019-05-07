@@ -9,10 +9,10 @@ TOP_DIR=${CWDIR}/../../../
 
 source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
 
-function install_R() {
+function install_pkg() {
 case $OSVER in
 centos*)
-    yum install -y R pkg-config
+    yum install -y pkgconfig
     ;;
 ubuntu*)
     apt update
@@ -27,11 +27,18 @@ esac
 
 function pkg() {
     ## Install R before source greenplum_path
-    install_R
-    which R
-    
+    install_pkg
+
     [ -f /opt/gcc_env.sh ] && source /opt/gcc_env.sh
     source /usr/local/greenplum-db-devel/greenplum_path.sh
+
+    ## Install R
+    if [ "$OSVER" != "ubuntu18" ]; then
+    	tar zxf bin_r/bin_r_$OSVER.tar.gz -C /usr/lib64
+        export LD_LIBRARY_PATH=/usr/lib64/R/lib64/R/lib:/usr/lib64/R/lib64/R/extlib:$LD_LIBRARY_PATH
+        export R_HOME=/usr/lib64/R/lib64/R
+	export PATH=/usr/lib64/R/bin/:$PATH
+    fi
 
     export USE_PGXS=1
     pushd plr_src/src
