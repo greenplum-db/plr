@@ -233,7 +233,7 @@ jobs:
       file: plr_src/concourse/tasks/build_plr.yml
       image: centos-gpdb-dev-7
       input_mapping:
-        bin_r: bin_r_centos6
+        bin_r: bin_r_centos7
       output_mapping:
         bin_plr: plr_gpdb_centos7_build
       params:
