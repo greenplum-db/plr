@@ -35,22 +35,7 @@ function prepare_test(){
 
 function test() {
 	su gpadmin -c "bash /home/gpadmin/test.sh $(pwd)"
-
-    case "$OSVER" in
-    suse11)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-sles11.gppkg
-      ;;
-    centos6)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel6.gppkg
-      ;;
-    centos7)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-rhel7.gppkg
-      ;;
-    ubuntu18)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-ubuntu18.gppkg
-      ;;
-    *) echo "Unknown OS: $OSVER"; exit 1 ;;
-  esac
+	mv bin_plr/plr-*.gppkg plr_gppkg/
 }
 
 function setup_gpadmin_user() {
