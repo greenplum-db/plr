@@ -1,6 +1,6 @@
-\! gppkg -q --all | sed -n '/^plr-[0-9]/s|.*|plr|p'
+\! gppkg -q --all | sed -n '/^plr-/s|.*|plr|p'
 \! echo '############# SEPARATOR LINE ###########'
 -- start_ignore
-\! gppkg -r plr
+\! gppkg -r 'plr-*'
 -- end_ignore
-\! gppkg -q --all | sed -n '/^plr-[0-9]/s|.*|plr|p'
+\! gppkg -q --all | sed -n '/^plr-/s|.*|plr|p'
