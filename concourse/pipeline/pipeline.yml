@@ -110,21 +110,21 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-rhel7.gppkg
+    versioned_file: plr/published/gpdb6/plr-rhel7.gppkg
 
 - name: plr_gpdb_centos6_bin
   type: gcs
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-rhel6.gppkg
+    versioned_file: plr/published/gpdb6/plr-rhel6.gppkg
 
 - name: plr_gpdb_ubuntu18_bin
   type: gcs
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-ubuntu18.gppkg
+    versioned_file: plr/published/gpdb6/plr-ubuntu18.gppkg
 
 - name: xz
   type: s3
@@ -174,13 +174,11 @@ jobs:
   - task: r_centos7_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-7
-    output_mapping:
-      bin_r: bin_r_centos7
     params:
       OSVER: centos7
   - put: bin_r_centos7
     params:
-      file: bin_r_centos7/bin_r_centos7.tar.gz
+      file: bin_r/bin_r_centos7.tar.gz
 
 - name: build_r_centos6
   plan:
@@ -196,13 +194,11 @@ jobs:
   - task: r_centos6_build
     file: plr_src/concourse/tasks/build_r.yml
     image: centos-gpdb-dev-6
-    output_mapping:
-      bin_r: bin_r_centos6
     params:
       OSVER: centos6
   - put: bin_r_centos6
     params:
-      file: bin_r_centos6/bin_r_centos6.tar.gz
+      file: bin_r/bin_r_centos6.tar.gz
 
 # Build PLR GPPKG
 - name: plr_centos7_build
@@ -214,31 +210,26 @@ jobs:
     - get: bin_gpdb
       resource: bin_gpdb_centos7
     - get: gpdb_src
-    - get: bin_r_centos7
+    - get: bin_r
+      resource: bin_r_centos7
       passed: [build_r_centos7]
       trigger: true
   - aggregate:
     - task: Build_PLR
       file: plr_src/concourse/tasks/build_plr.yml
       image: centos-gpdb-dev-7
-      input_mapping:
-        bin_r: bin_r_centos7
-      output_mapping:
-        bin_plr: plr_gpdb_centos7_build
       params:
         <<: *centos7_params
   - aggregate:
     - task: Test_PLR
       file: plr_src/concourse/tasks/test_plr.yml
       image: centos-gpdb-dev-7
-      output_mapping:
-        plr_gppkg: plr_gpdb_centos7_bin
       params:
         <<: *centos7_params
   - aggregate:
     - put: plr_gpdb_centos7_bin
       params:
-        file: plr_gpdb_centos7_bin/plr-*.gppkg
+        file: plr_gppkg/plr-*.gppkg
 
 - name: plr_centos6_build
   max_in_flight: 3
@@ -249,31 +240,26 @@ jobs:
     - get: bin_gpdb
       resource: bin_gpdb_centos6
     - get: gpdb_src
-    - get: bin_r_centos6
+    - get: bin_r
+      resource: bin_r_centos6
       passed: [build_r_centos6]
       trigger: true
   - aggregate:
     - task: Build_PLR
       file: plr_src/concourse/tasks/build_plr.yml
       image: centos-gpdb-dev-6
-      input_mapping:
-        bin_r: bin_r_centos6
-      output_mapping:
-        bin_plr: plr_gpdb_centos6_build
       params:
         <<: *centos6_params
   - aggregate:
     - task: Test_PLR
       file: plr_src/concourse/tasks/test_plr.yml
       image: centos-gpdb-dev-6
-      output_mapping:
-        plr_gppkg: plr_gpdb_centos6_bin
       params:
         <<: *centos6_params
   - aggregate:
     - put: plr_gpdb_centos6_bin
       params:
-        file: plr_gpdb_centos6_bin/plr-*.gppkg
+        file: plr_gppkg/plr-*.gppkg
 
 - name: plr_ubuntu18_build
   max_in_flight: 3

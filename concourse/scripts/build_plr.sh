@@ -46,7 +46,7 @@ function pkg() {
     make
     popd
     
-    cp plr_src/gppkg/plr-*.gppkg bin_plr/
+    mv plr_src/gppkg/plr-*.gppkg bin_plr/
 	
 }
 
