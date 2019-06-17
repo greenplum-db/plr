@@ -31,6 +31,8 @@
  * plr.c - Language handler and support functions
  */
 #include "plr.h"
+#include "access/xact.h"
+#include "utils/tuplestore.h"
 
 PG_MODULE_MAGIC;
 
@@ -739,12 +741,127 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	 */
 	if (SPI_finish() != SPI_OK_FINISH)
 		elog(ERROR, "SPI_finish failed");
+
 	retval = r_get_pg(rvalue, function, fcinfo);
 
 	POP_PLERRCONTEXT;
 	UNPROTECT(3);
 
 	return retval;
+}
+
+rcMgr ResultCacheMgr = {};
+
+static bool
+hascacheresult(plr_function * function, PG_FUNCTION_ARGS, ResultCache **ppCache)
+{
+	TimestampTz tz = GetCurrentTransactionStartTimestamp();
+	if(ResultCacheMgr.startTs != tz)
+	{
+		ResultCacheMgr.startTs = tz;
+		ResultCacheMgr.reslst = NULL;
+		return false;
+	}
+
+	int         i;
+	ListCell    *cell;
+	foreach(cell,ResultCacheMgr.reslst)
+	{
+
+		ResultCache *cache = (ResultCache *)lfirst(cell);
+
+		if(cache->nargs != function->nargs)
+			continue;
+
+		if(strcmp(cache->proname, function->proname))
+			continue;
+
+
+		for(i = 0; i < function->nargs; i ++)
+		{
+			if(cache->args[i] != fcinfo->arg[i])
+				break;
+		}
+
+		if(i == function->nargs)
+		{
+			*ppCache = cache;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static Datum
+grabcacheresult(PG_FUNCTION_ARGS, ResultCache *pcache) {
+	TupleDesc tupdesc;
+	MemoryContext oldcontext;
+	Tuplestorestate *tupstore;
+	ReturnSetInfo *rsinfo = (ReturnSetInfo *) fcinfo->resultinfo;
+
+	oldcontext = MemoryContextSwitchTo(rsinfo->econtext->ecxt_per_query_memory);
+
+	tupdesc = CreateTupleDescCopy(rsinfo->expectedDesc);
+	tupstore = TUPLESTORE_BEGIN_HEAP;
+	for (int i = 0; i < pcache->ntups; i++)
+		tuplestore_puttuple(tupstore, (HeapTuple )DatumGetPointer(pcache->result[i]));
+
+	MemoryContextSwitchTo(oldcontext);
+
+	rsinfo->setDesc = tupdesc;
+	rsinfo->setResult = tupstore;
+	rsinfo->returnMode = SFRM_Materialize;
+
+	return 0;
+}
+static void
+set_cache_result(SEXP rval, plr_function *function, FunctionCallInfo fcinfo)
+{
+	SEXP				dfcol;
+	Tuplestorestate     *tupstore;
+	MemoryContext       oldcontext, per_query_ctx;
+	ReturnSetInfo       *rsinfo;
+	if(!function->result_istuple ||
+			!fcinfo->flinfo->fn_retset ||
+			!isFrame(rval))
+		return;
+
+	rsinfo = (ReturnSetInfo *) fcinfo->resultinfo;
+	tupstore = rsinfo->setResult;
+	per_query_ctx = rsinfo->econtext->ecxt_per_query_memory;
+
+	oldcontext = MemoryContextSwitchTo(per_query_ctx);
+
+	ResultCache *resultCache = palloc0(sizeof(ResultCache));
+	TupleTableSlot * slot = MakeSingleTupleTableSlot(rsinfo->setDesc);
+
+	PROTECT(dfcol = VECTOR_ELT(rval, 0));
+	resultCache->ntups = length(dfcol);
+	UNPROTECT(1);
+
+	resultCache->result = palloc0(sizeof(Datum) * resultCache->ntups);
+
+	resultCache->nargs = function->nargs;
+
+	strcpy(resultCache->proname, function->proname);
+
+	for(int j = 0; j < function->nargs; j++)
+		resultCache->args[j] = fcinfo->arg[j];
+
+	int i = 0;
+	while(tuplestore_gettupleslot(tupstore, true,
+	                            false, slot))
+	{
+		resultCache->result[i] = PointerGetDatum(heaptuple_copy_to(slot->PRIVATE_tts_heaptuple ,NULL ,NULL));
+
+		i++;
+	}
+
+	tuplestore_rescan(tupstore);
+
+	ResultCacheMgr.reslst = lappend(ResultCacheMgr.reslst, resultCache);
+	MemoryContextSwitchTo(oldcontext);
 }
 
 static Datum
@@ -762,6 +879,18 @@ plr_func_handler(PG_FUNCTION_ARGS)
 
 	/* set up error context */
 	PUSH_PLERRCONTEXT(plr_error_callback, function->proname);
+	ResultCache *pcache;
+
+	if(hascacheresult(function, fcinfo, &pcache))
+	{
+		retval = grabcacheresult(fcinfo, pcache);
+
+		if (SPI_finish() != SPI_OK_FINISH)
+			elog(ERROR, "SPI_finish failed");
+		POP_PLERRCONTEXT;
+		return retval;
+	}
+
 
 	PROTECT(fun = function->fun);
 
@@ -777,7 +906,11 @@ plr_func_handler(PG_FUNCTION_ARGS)
 	 */
 	if (SPI_finish() != SPI_OK_FINISH)
 		elog(ERROR, "SPI_finish failed");
+
 	retval = r_get_pg(rvalue, function, fcinfo);
+
+	set_cache_result(rvalue, function, fcinfo);
+
 
 	POP_PLERRCONTEXT;
 	UNPROTECT(3);

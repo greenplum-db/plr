@@ -492,6 +492,18 @@ typedef struct plr_hashent
 	plr_function   *function;
 } plr_HashEnt;
 
+typedef struct ResultCache{
+	char proname[100];
+	int nargs;
+	int ntups;
+	Datum args[100];
+	Datum *result;
+}ResultCache;
+
+typedef struct rcMgr {
+	TimestampTz     startTs;
+	List            *reslst;
+}rcMgr;
 /*
  * external declarations
  */
