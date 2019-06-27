@@ -10,13 +10,13 @@ popd
 function release_gpdb() {
     case "$OSVER" in
     centos6)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel6-x86_64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel6_x86_64.gppkg
       ;;
     centos7)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel7-x86_64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel7_x86_64.gppkg
       ;;
     ubuntu18)
-        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-ubuntu18-amd64.gppkg
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-ubuntu18.04_x86_64.gppkg
       ;;
     *) echo "Unknown OS: $OSVER"; exit 1 ;;
   esac

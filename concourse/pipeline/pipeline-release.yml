@@ -69,7 +69,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket}}
-    regexp: plr/released/gpdb6/plr-(.*)-rhel7-x86_64.gppkg
+    regexp: plr/released/gpdb6/plr-(.*)-rhel7_x86_64.gppkg
 
 - name: bin_gpdb_centos7
   type: gcs
@@ -92,7 +92,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket}}
-    regexp: plr/released/gpdb6/plr-(.*)-rhel6-x86_64.gppkg
+    regexp: plr/released/gpdb6/plr-(.*)-rhel6_x86_64.gppkg
 
 - name: bin_gpdb_centos6
   type: gcs
@@ -115,7 +115,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket}}
-    regexp: plr/released/gpdb6/plr-(.*)-ubuntu18-amd64.gppkg
+    regexp: plr/released/gpdb6/plr-(.*)-ubuntu18.04_x86_64.gppkg
 
 - name: bin_gpdb_ubuntu18
   type: gcs
