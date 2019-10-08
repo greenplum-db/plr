@@ -163,7 +163,7 @@ resources:
 jobs:
 - name: plr_centos6_release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-6
     - get: plr_src
       trigger: true
@@ -184,7 +184,7 @@ jobs:
 
 - name: plr_centos7_release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-7
     - get: plr_src
       trigger: true
@@ -205,7 +205,7 @@ jobs:
 
 - name: plr_suse11_release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: plr_gpdb_suse11_build
@@ -224,7 +224,7 @@ jobs:
 
 - name: plr_centos6_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-6
     - get: plr_src
     - get: plr_gpdb_centos6_release
@@ -243,7 +243,7 @@ jobs:
 
 - name: plr_centos7_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-7
     - get: plr_src
     - get: plr_gpdb_centos7_release
@@ -262,7 +262,7 @@ jobs:
 
 - name: plr_suse11_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
     - get: plr_gpdb_suse11_release
     - get: bin_gpdb_suse11
