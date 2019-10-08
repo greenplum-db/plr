@@ -167,7 +167,7 @@ jobs:
 
 - name: build_r_centos7
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: centos-gpdb-dev-7
@@ -185,7 +185,7 @@ jobs:
 
 - name: build_r_centos6
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: centos-gpdb-dev-6
@@ -205,7 +205,7 @@ jobs:
 - name: plr_centos7_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-7
     - get: plr_src
     - get: bin_gpdb
@@ -215,27 +215,24 @@ jobs:
       resource: bin_r_centos7
       passed: [build_r_centos7]
       trigger: true
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr.yml
-      image: centos-gpdb-dev-7
-      params:
-        <<: *centos7_params
-  - aggregate:
-    - task: Test_PLR
-      file: plr_src/concourse/tasks/test_plr.yml
-      image: centos-gpdb-dev-7
-      params:
-        <<: *centos7_params
-  - aggregate:
-    - put: plr_gpdb_centos7_bin
-      params:
-        file: plr_gppkg/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr.yml
+    image: centos-gpdb-dev-7
+    params:
+      <<: *centos7_params
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: centos-gpdb-dev-7
+    params:
+      <<: *centos7_params
+  - put: plr_gpdb_centos7_bin
+    params:
+      file: plr_gppkg/plr-*.gppkg
 
 - name: plr_centos6_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-6
     - get: plr_src
     - get: bin_gpdb
@@ -245,27 +242,24 @@ jobs:
       resource: bin_r_centos6
       passed: [build_r_centos6]
       trigger: true
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr.yml
-      image: centos-gpdb-dev-6
-      params:
-        <<: *centos6_params
-  - aggregate:
-    - task: Test_PLR
-      file: plr_src/concourse/tasks/test_plr.yml
-      image: centos-gpdb-dev-6
-      params:
-        <<: *centos6_params
-  - aggregate:
-    - put: plr_gpdb_centos6_bin
-      params:
-        file: plr_gppkg/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr.yml
+    image: centos-gpdb-dev-6
+    params:
+      <<: *centos6_params
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: centos-gpdb-dev-6
+    params:
+      <<: *centos6_params
+  - put: plr_gpdb_centos6_bin
+    params:
+      file: plr_gppkg/plr-*.gppkg
 
 - name: plr_ubuntu18_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: ubuntu18-image-test
     - get: ubuntu18-image
     - get: plr_src
@@ -274,20 +268,17 @@ jobs:
       resource: bin_gpdb_ubuntu18
     - get: gpdb_src
       trigger: true
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr.ubuntu.yml
-      image: ubuntu18-image
-      params:
-        <<: *ubuntu18_params
-  - aggregate:
-    - task: Test_PLR
-      file: plr_src/concourse/tasks/test_plr.yml
-      image: ubuntu18-image-test
-      params:
-        <<: *ubuntu18_params
-  - aggregate:
-    - put: plr_gpdb_ubuntu18_bin
-      params:
-        file: plr_gppkg/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr.ubuntu.yml
+    image: ubuntu18-image
+    params:
+      <<: *ubuntu18_params
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: ubuntu18-image-test
+    params:
+      <<: *ubuntu18_params
+  - put: plr_gpdb_ubuntu18_bin
+    params:
+      file: plr_gppkg/plr-*.gppkg
 
