@@ -169,7 +169,7 @@ jobs:
 
 - name: GPDB4_Build_R_CENTOS5
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_centos5
@@ -191,7 +191,7 @@ jobs:
 
 - name: GPDB4_Build_R_CENTOS6
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_centos5
@@ -213,7 +213,7 @@ jobs:
 
 - name: GPDB4_Build_R_SUSE11
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
       trigger: true
     - get: bin_gpdb4_suse11
@@ -237,7 +237,7 @@ jobs:
 - name: gpdb4_plr_centos5_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-5
     - get: plr_src
     - get: bin_gpdb4_centos5
@@ -245,27 +245,25 @@ jobs:
       passed: [GPDB4_Build_R_CENTOS5]
       trigger: true
     - get: gpdb_src
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr.yml
-      image: centos-gpdb-dev-5
-      input_mapping:
-        bin_gpdb: bin_gpdb4_centos5
-        bin_r: gpdb4_bin_r_centos5
-      output_mapping:
-        bin_plr: plr_gpdb4_centos5_build
-      params:
-        OSVER: centos5
-        GPDBVER: GPDB4.3
-  - aggregate:
-    - put: plr_gpdb4_centos5_build
-      params:
-        file: plr_gpdb4_centos5_build/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr.yml
+    image: centos-gpdb-dev-5
+    input_mapping:
+      bin_gpdb: bin_gpdb4_centos5
+      bin_r: gpdb4_bin_r_centos5
+    output_mapping:
+      bin_plr: plr_gpdb4_centos5_build
+    params:
+      OSVER: centos5
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_centos5_build
+    params:
+      file: plr_gpdb4_centos5_build/plr-*.gppkg
 
 - name: gpdb4_plr_centos6_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-6
     - get: plr_src
     - get: bin_gpdb4_centos5
@@ -273,54 +271,50 @@ jobs:
       passed: [GPDB4_Build_R_CENTOS6]
       trigger: true
     - get: gpdb_src
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr.yml
-      image: centos-gpdb-dev-6
-      input_mapping:
-        bin_gpdb: bin_gpdb4_centos5
-        bin_r: gpdb4_bin_r_centos6
-      output_mapping:
-        bin_plr: plr_gpdb4_centos6_build
-      params:
-        OSVER: centos6
-        GPDBVER: GPDB4.3
-  - aggregate:
-    - put: plr_gpdb4_centos6_build
-      params:
-        file: plr_gpdb4_centos6_build/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr.yml
+    image: centos-gpdb-dev-6
+    input_mapping:
+      bin_gpdb: bin_gpdb4_centos5
+      bin_r: gpdb4_bin_r_centos6
+    output_mapping:
+      bin_plr: plr_gpdb4_centos6_build
+    params:
+      OSVER: centos6
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_centos6_build
+    params:
+      file: plr_gpdb4_centos6_build/plr-*.gppkg
 
 - name: gpdb4_plr_suse11_build
   max_in_flight: 3
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
     - get: bin_gpdb4_suse11
     - get: gpdb4_bin_r_suse11
       passed: [GPDB4_Build_R_SUSE11]
       trigger: true
     - get: gpdb_src
-  - aggregate:
-    - task: Build_PLR
-      file: plr_src/concourse/tasks/build_plr_sles.yml
-      input_mapping:
-        bin_gpdb: bin_gpdb4_suse11
-        bin_r: gpdb4_bin_r_suse11
-      output_mapping:
-        bin_plr: plr_gpdb4_suse11_build
-      params:
-        OSVER: suse11
-        GPDBVER: GPDB4.3
-  - aggregate:
-    - put: plr_gpdb4_suse11_build
-      params:
-        file: plr_gpdb4_suse11_build/plr-*.gppkg
+  - task: Build_PLR
+    file: plr_src/concourse/tasks/build_plr_sles.yml
+    input_mapping:
+      bin_gpdb: bin_gpdb4_suse11
+      bin_r: gpdb4_bin_r_suse11
+    output_mapping:
+      bin_plr: plr_gpdb4_suse11_build
+    params:
+      OSVER: suse11
+      GPDBVER: GPDB4.3
+  - put: plr_gpdb4_suse11_build
+    params:
+      file: plr_gpdb4_suse11_build/plr-*.gppkg
 
 # Test PL/R GPPKG
 
 - name: gpdb4_plr_centos5_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-5
     - get: plr_src
     - get: plr_gpdb4_centos5_build
@@ -342,7 +336,7 @@ jobs:
 
 - name: gpdb4_plr_centos6_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: centos-gpdb-dev-6
     - get: plr_src
     - get: plr_gpdb4_centos6_build
@@ -364,7 +358,7 @@ jobs:
 
 - name: gpdb4_plr_suse11_test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: plr_src
     - get: plr_gpdb4_suse11_build
       passed: [gpdb4_plr_suse11_build]
