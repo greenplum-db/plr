@@ -7,14 +7,16 @@ groups:
   jobs:
     - plr_centos6_release
     - plr_centos7_release
+    - plr_rhel8_release
     - plr_ubuntu18_release
     - plr_centos6_test
     - plr_centos7_test
+    - plr_rhel8_test
     - plr_ubuntu18_test
 
 resource_types:
 - name: gcs
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
 
@@ -23,19 +25,35 @@ resources:
 # Image Resources
 
 - name: centos-gpdb-dev-6
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb5-centos6-build-test
     tag: latest
 
 - name: centos-gpdb-dev-7
-  type: docker-image
+  type: registry-image
   source:
-    repository: gcr.io/data-gpdb-public-images/gpdb5-centos7-build-test 
+    repository: gcr.io/data-gpdb-public-images/gpdb5-centos7-build-test
     tag: latest
 
+- name: rhel-image-dev-8
+  type: registry-image
+  source:
+    repository: gcr.io/data-gpdb-private-images/gpdb6-rhel8-build
+    tag: latest
+    username: _json_key
+    password: ((container-registry-readonly-service-account-key))
+
+- name: rhel-image-test-8
+  type: registry-image
+  source:
+    repository: gcr.io/data-gpdb-private-images/gpdb6-rhel8-test
+    tag: latest
+    username: _json_key
+    password: ((container-registry-readonly-service-account-key))
+
 - name: ubuntu18-image
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb6-ubuntu18.04-test
     tag: latest
@@ -54,6 +72,29 @@ resources:
     branch: gpdb6
     uri: https://github.com/greenplum-db/plr.git
     tag_filter: 3.*
+
+# rhel8
+
+- name: plr_gpdb_rhel8_build
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    regexp: plr/published/gpdb6/plr-r(.*)8.gppkg
+
+- name: plr_gpdb_rhel8_release
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket}}
+    regexp: plr/released/gpdb6/plr-(.*)-rhel8-x86_64.gppkg
+
+- name: bin_gpdb_rhel8
+  type: gcs
+  source:
+    bucket: ((gcs-bucket-intermediates))
+    json_key: ((concourse-gcs-resources-service-account-key))
+    versioned_file: 6X_STABLE/bin_gpdb_rhel8/bin_gpdb.tar.gz
 
 # centos 7
 
@@ -168,6 +209,26 @@ jobs:
     params:
       file: plr_gpdb_centos7_release/plr-*.gppkg
 
+- name: plr_rhel8_release
+  plan:
+  - aggregate:
+    - get: rhel-image-dev-8
+    - get: plr_src
+      trigger: true
+    - get: bin_plr
+      resource: plr_gpdb_rhel8_build
+  - task: release_PLR
+    file: plr_src/concourse/tasks/release_plr.yml
+    image: rhel-image-dev-8
+    output_mapping:
+      plr_gppkg: plr_gpdb_rhel8_release
+    params:
+      OSVER: rhel8
+      GPDBVER: gp6
+  - put: plr_gpdb_rhel8_release
+    params:
+      file: plr_gpdb_rhel8_release/plr-*.gppkg
+
 - name: plr_ubuntu18_release
   plan:
   - aggregate:
@@ -207,6 +268,25 @@ jobs:
       GPDBVER: gp6
       BLDARCH: rhel7_x86_64
 
+- name: plr_rhel8_test
+  plan:
+  - aggregate:
+    - get: rhel-image-test-8
+    - get: plr_src
+    - get: bin_plr
+      resource: plr_gpdb_rhel8_release
+    - get: bin_gpdb
+      resource: bin_gpdb_rhel8
+      trigger: true
+    - get: gpdb_src
+  - task: Test_PLR
+    file: plr_src/concourse/tasks/test_plr.yml
+    image: rhel-image-test-8
+    params:
+      OSVER: rhel8
+      GPDBVER: gp6
+      BLDARCH: rhel8_x86_64
+
 - name: plr_centos7_test
   plan:
   - aggregate:
@@ -244,4 +324,3 @@ jobs:
       OSVER: ubuntu18
       GPDBVER: gp6
       BLDARCH: ubuntu18_amd64
-

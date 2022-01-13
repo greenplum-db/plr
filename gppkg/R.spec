@@ -1,17 +1,21 @@
-Summary:        R statistics language 
-License:        GPLv2        
+Summary:        R statistics language
+License:        GPLv2
 Name:           R
 Version:        %{r_ver}
-Release:        1 
+Release:        1
 Group:          Development/Tools
 Prefix:         /temp
 AutoReq:        no
 AutoProv:       no
-BuildArch:      %{buildarch} 
+BuildArch:      %{buildarch}
 Provides:       R = %{r_ver}, /bin/sh
 
 %description
 The R module provides the R statistics language.
+
+# Don't generate build_id.
+# gppkg will install file in user permission directory, build_id will always install to /usr/lib/.build-id
+%define _build_id_links none
 
 %install
 mkdir -p %{buildroot}/temp/ext/R-%{r_ver}

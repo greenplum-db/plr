@@ -20,19 +20,19 @@ elif [ "$OSVER" == "ubuntu18" ]; then
     apt-get install -y wget
     apt-get install -y build-essential gfortran
 else
-    yum install -y subversion
     yum install -y gcc gcc-c++ gcc-gfortran
-    yum install -y 'texlive-*'
+    # if need to build the help pages with PDF format.
+    # yum install -y 'texlive-*'
     yum install -y wget
 fi
 
 
 # Zlib dependency
-pushd ${TOP_DIR}/zlib 
+pushd ${TOP_DIR}/zlib
 tar zxf zlib-1.2.8.tar.gz
 pushd zlib-1.2.8
 ./configure --prefix=/usr/local/lib64/zlib
-make -j
+make -j$(nproc)
 make install
 export LD_LIBRARY_PATH=/usr/local/lib64/zlib/lib:$LD_LIBRARY_PATH
 export CFLAGS="$CFLAGS -I/usr/local/lib64/zlib/include"
@@ -46,7 +46,7 @@ pushd ${TOP_DIR}/bzip2
 tar zxf bzip2-1.0.6.tar.gz
 pushd bzip2-1.0.6
 make -f Makefile-libbz2_so
-make -j
+make -j$(nproc)
 make install PREFIX=/usr/local/lib64/bzip2
 ln -s libbz2.so.1.0.6 libbz2.so.1
 ln -s libbz2.so.1     libbz2.so
@@ -60,9 +60,12 @@ popd
 pushd ${TOP_DIR}/xz
 tar zxf xz-5.2.2.tar.gz
 pushd xz-5.2.2
-cp ${TOP_DIR}/plr_src/concourse/scripts/xz.patch ./src/liblzma/liblzma.map
+if [ "$OSVER" = "centos7" ]; then
+  # XZ_5.1.2alpha never release, but include in centos7 binary build, this is workaround only for centos7
+  cp ${TOP_DIR}/plr_src/concourse/scripts/xz.patch ./src/liblzma/liblzma.map
+fi
 ./configure --prefix=/usr/local/lib64/xz
-make -j
+make -j$(nproc)
 make install
 export LD_LIBRARY_PATH=/usr/local/lib64/xz/lib:$LD_LIBRARY_PATH
 export CFLAGS="$CFLAGS -I/usr/local/lib64/xz/include"
@@ -70,11 +73,11 @@ popd
 popd
 
 # PCRE dependency
-wget ftp://ftp.pcre.org/pub/pcre/pcre-8.39.tar.gz
+wget --no-check-certificate https://ftp.exim.org/pub/pcre/pcre-8.39.tar.gz # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
 tar zxf pcre-8.39.tar.gz
 pushd pcre-8.39
 ./configure --enable-utf --enable-unicode-properties --enable-jit --disable-cpp --prefix=/usr/local/lib64/pcre
-make -j
+make -j$(nproc)
 make install
 export LD_LIBRARY_PATH=/usr/local/lib64/pcre/lib:$LD_LIBRARY_PATH
 export CFLAGS="$CFLAGS -I/usr/local/lib64/pcre/include"
@@ -85,7 +88,7 @@ wget http://ftp.gnu.org/gnu/texinfo/texinfo-6.1.tar.gz
 tar zxf texinfo-6.1.tar.gz
 pushd texinfo-6.1
 ./configure --prefix=/usr/local/lib64/texinfo
-make -j
+make -j$(nproc)
 make install
 popd
 export PATH=/usr/local/lib64/texinfo/bin/:$PATH
@@ -128,7 +131,7 @@ else
 fi
 ./tools/rsync-recommended
 ./configure --prefix=/usr/lib64/R --with-x=no --with-readline=no --enable-R-shlib --disable-rpath
-make -j
+make -j$(nproc)
 make install
 popd
 
@@ -144,9 +147,9 @@ else
 fi
 
 mkdir /usr/lib64/R/lib64/R/extlib
-cp /usr/local/lib64/zlib/lib/libz.so.1      /usr/lib64/R/lib64/R/extlib
-cp /usr/local/lib64/xz/lib/liblzma.so.5     /usr/lib64/R/lib64/R/extlib
-cp /usr/local/lib64/pcre/lib/libpcre.so.1   /usr/lib64/R/lib64/R/extlib
+cp /usr/local/lib64/zlib/lib/libz.so*      /usr/lib64/R/lib64/R/extlib
+cp /usr/local/lib64/xz/lib/liblzma.so*     /usr/lib64/R/lib64/R/extlib
+cp /usr/local/lib64/pcre/lib/libpcre.so*   /usr/lib64/R/lib64/R/extlib
 
 case $OSVER in
     centos6)
@@ -165,6 +168,15 @@ case $OSVER in
 #        cp /usr/lib64/libssl.so.10                  /usr/lib64/R/lib64/R/extlib
 #        cp /usr/lib64/libcrypto.so.10               /usr/lib64/R/lib64/R/extlib
         cp /usr/lib64/libquadmath.so.0              /usr/lib64/R/lib64/R/extlib
+    ;;
+    rhel8)
+        cp /usr/local/lib64/bzip2/lib/libbz2.so* /usr/lib64/R/lib64/R/extlib # libbz2.so.1.0.6
+#        cp /usr/local/curl/lib/libcurl.so.4         /usr/lib64/R/lib64/R/extlib
+        cp /usr/lib64/libgomp.so*                  /usr/lib64/R/lib64/R/extlib # libgomp.so.1.0.0
+        cp /usr/lib64/libgfortran.so*              /usr/lib64/R/lib64/R/extlib # libgfortran.so.5.0.0
+#        cp /usr/lib64/libssl.so.10                  /usr/lib64/R/lib64/R/extlib
+#        cp /usr/lib64/libcrypto.so.10               /usr/lib64/R/lib64/R/extlib
+        cp /usr/lib64/libquadmath.so*              /usr/lib64/R/lib64/R/extlib # libquadmath.0.0.0
     ;;
     suse*)
         cp /usr/local/lib64/bzip2/lib/libbz2.so.1   /usr/lib64/R/lib64/R/extlib

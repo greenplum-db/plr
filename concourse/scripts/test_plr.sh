@@ -7,35 +7,34 @@ TOP_DIR=${CWDIR}/../../../
 GPDB_CONCOURSE_DIR=${TOP_DIR}/gpdb_src/concourse/scripts
 
 source "${GPDB_CONCOURSE_DIR}/common.bash"
-function prepare_test(){	
+function prepare_test(){
 
-	cat > /home/gpadmin/test.sh <<-EOF
-		set -exo pipefail
+    cat > /home/gpadmin/test.sh <<-EOF
+        set -exo pipefail
 
         source ${TOP_DIR}/gpdb_src/gpAux/gpdemo/gpdemo-env.sh
         source /usr/local/greenplum-db-devel/greenplum_path.sh
-		gppkg -i bin_plr/plr-*.gppkg || exit 1
+        gppkg -i bin_plr/plr-*.gppkg || exit 1
         source /usr/local/greenplum-db-devel/greenplum_path.sh
         gpstop -arf
 
         pushd plr_src/src
-        
-		make USE_PGXS=1 installcheck
+
+        make USE_PGXS=1 installcheck
 
         [ -s regression.diffs ] && cat regression.diffs && exit 1
         popd
+EOF
 
-	EOF
-
-	chown -R gpadmin:gpadmin $(pwd)
-	chown gpadmin:gpadmin /home/gpadmin/test.sh
-	chmod a+x /home/gpadmin/test.sh
+    chown -R gpadmin:gpadmin $(pwd)
+    chown gpadmin:gpadmin /home/gpadmin/test.sh
+    chmod a+x /home/gpadmin/test.sh
 
 }
 
 function test() {
-	su gpadmin -c "bash /home/gpadmin/test.sh $(pwd)"
-	mv bin_plr/plr-*.gppkg plr_gppkg/
+    su gpadmin -c "bash /home/gpadmin/test.sh $(pwd)"
+    mv bin_plr/plr-*.gppkg plr_gppkg/
 }
 
 function setup_gpadmin_user() {
@@ -43,7 +42,7 @@ function setup_gpadmin_user() {
         suse*)
         ${GPDB_CONCOURSE_DIR}/setup_gpadmin_user.bash "sles"
         ;;
-        centos*)
+        centos* | rhel*)
         ${GPDB_CONCOURSE_DIR}/setup_gpadmin_user.bash "centos"
         ;;
         ubuntu*)
@@ -51,13 +50,12 @@ function setup_gpadmin_user() {
         ;;
         *) echo "Unknown OS: $OSVER"; exit 1 ;;
     esac
-	
 }
 
 function install_pkg()
 {
 case $OSVER in
-centos*)
+centos* | rhel*)
     yum install -y pkgconfig
     ;;
 ubuntu*)

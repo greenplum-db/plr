@@ -15,6 +15,9 @@ function release_gpdb() {
     centos7)
         cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel7-x86_64.gppkg
       ;;
+    rhel8)
+        cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-rhel8-x86_64.gppkg
+      ;;
     ubuntu18)
         cp bin_plr/plr-*.gppkg plr_gppkg/plr-$PLR_VERSION-$GPDBVER-ubuntu18-amd64.gppkg
       ;;
@@ -23,7 +26,7 @@ function release_gpdb() {
 }
 
 function _main() {
-	time release_gpdb
+    time release_gpdb
 }
 
 _main "$@"

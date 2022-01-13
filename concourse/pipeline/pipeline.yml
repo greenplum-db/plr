@@ -5,8 +5,10 @@
 groups:
 - name: GPDB6
   jobs:
+    - build_r_rhel8
     - build_r_centos7
     - build_r_centos6
+    - plr_rhel8_build
     - plr_centos7_build
     - plr_centos6_build
     - plr_ubuntu18_build
@@ -19,6 +21,10 @@ centos7_params: &centos7_params
   OSVER: centos7
   BLDARCH: rhel7_x86_64
   GPDBVER: gp6
+rhel8_params: &rhel8_params
+  OSVER: rhel8
+  BLDARCH: rhel8_x86_64
+  GPDBVER: gp6
 ubuntu18_params: &ubuntu18_params
   OSVER: ubuntu18
   BLDARCH: ubuntu18_amd64
@@ -26,7 +32,7 @@ ubuntu18_params: &ubuntu18_params
 
 resource_types:
 - name: gcs
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
 
@@ -35,25 +41,41 @@ resources:
 # Image Resources
 
 - name: centos-gpdb-dev-6
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb5-centos6-build-test
-    tag: latest 
+    tag: latest
 
 - name: centos-gpdb-dev-7
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb5-centos7-build-test
     tag: latest
 
+- name: rhel-image-dev-8
+  type: registry-image
+  source:
+    repository: gcr.io/data-gpdb-private-images/gpdb6-rhel8-build
+    tag: latest
+    username: _json_key
+    password: ((container-registry-readonly-service-account-key))
+
+- name: rhel-image-test-8
+  type: registry-image
+  source:
+    repository: gcr.io/data-gpdb-private-images/gpdb6-rhel8-test
+    tag: latest
+    username: _json_key
+    password: ((container-registry-readonly-service-account-key))
+
 - name: ubuntu18-image
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb6-ubuntu18.04-build
     tag: latest
 
 - name: ubuntu18-image-test
-  type: docker-image
+  type: registry-image
   source:
     repository: gcr.io/data-gpdb-public-images/gpdb6-ubuntu18.04-test
     tag: latest
@@ -69,10 +91,16 @@ resources:
 - name: plr_src
   type: git
   source:
-    branch: gpdb6
+    branch: sa/6X_rhel8
     uri: https://github.com/greenplum-db/plr.git
 
 # centos 7
+- name: bin_gpdb_rhel8
+  type: gcs
+  source:
+    bucket: {{gcs-bucket-intermediates}}
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    versioned_file: ((gcs_gpdb_binary_folder))/bin_gpdb_rhel8/bin_gpdb.tar.gz
 
 - name: bin_gpdb_centos7
   type: gcs
@@ -95,6 +123,13 @@ resources:
     json_key: {{concourse-gcs-resources-service-account-key}}
     versioned_file: ((gcs_gpdb_binary_folder))/bin_gpdb_ubuntu18.04/bin_gpdb.tar.gz
 
+- name: bin_r_rhel8
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    versioned_file: plr/plr-rhel8/gpdb6/r/bin_r_rhel8.tar.gz
+
 - name: bin_r_centos7
   type: gcs
   source:
@@ -108,6 +143,13 @@ resources:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
     versioned_file: plr/plr-centos6/gpdb6/r/bin_r_centos6.tar.gz
+
+- name: plr_gpdb_rhel8_bin
+  type: gcs
+  source:
+    json_key: {{concourse-gcs-resources-service-account-key}}
+    bucket: {{gcs-bucket-intermediates}}
+    versioned_file: plr/published/gpdb6/plr-rhel8.gppkg
 
 - name: plr_gpdb_centos7_bin
   type: gcs
@@ -165,6 +207,24 @@ jobs:
 
 # Build R GPPKG
 
+- name: build_r_rhel8
+  plan:
+  - aggregate:
+    - get: plr_src
+      trigger: true
+    - get: rhel-image-dev-8
+    - get: xz
+    - get: zlib
+    - get: bzip2
+  - task: r_rhel8_build
+    file: plr_src/concourse/tasks/build_r.yml
+    image: rhel-image-dev-8
+    params:
+      OSVER: rhel8
+  - put: bin_r_rhel8
+    params:
+      file: bin_r/bin_r_rhel8.tar.gz
+
 - name: build_r_centos7
   plan:
   - aggregate:
@@ -202,6 +262,37 @@ jobs:
       file: bin_r/bin_r_centos6.tar.gz
 
 # Build PLR GPPKG
+- name: plr_rhel8_build
+  max_in_flight: 3
+  plan:
+  - aggregate:
+    - get: rhel-image-dev-8
+    - get: rhel-image-test-8
+    - get: plr_src
+    - get: bin_gpdb
+      resource: bin_gpdb_rhel8
+    - get: gpdb_src
+    - get: bin_r
+      resource: bin_r_rhel8
+      passed: [build_r_rhel8]
+      trigger: true
+  - aggregate:
+    - task: Build_PLR
+      file: plr_src/concourse/tasks/build_plr.yml
+      image: rhel-image-dev-8
+      params:
+        <<: *rhel8_params
+  - aggregate:
+    - task: Test_PLR
+      file: plr_src/concourse/tasks/test_plr.yml
+      image: rhel-image-test-8
+      params:
+        <<: *rhel8_params
+  - aggregate:
+    - put: plr_gpdb_rhel8_bin
+      params:
+        file: plr_gppkg/plr-*.gppkg
+
 - name: plr_centos7_build
   max_in_flight: 3
   plan:
@@ -290,4 +381,3 @@ jobs:
     - put: plr_gpdb_ubuntu18_bin
       params:
         file: plr_gppkg/plr-*.gppkg
-

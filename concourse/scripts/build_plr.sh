@@ -11,12 +11,12 @@ source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
 
 function install_pkg() {
 case $OSVER in
-centos*)
+centos* | rhel*)
     yum install -y pkgconfig
-	tar zxf bin_r/bin_r_$OSVER.tar.gz -C /usr/lib64
-	export LD_LIBRARY_PATH=/usr/lib64/R/lib64/R/lib:/usr/lib64/R/lib64/R/extlib:$LD_LIBRARY_PATH
-	export R_HOME=/usr/lib64/R/lib64/R
-	export PATH=/usr/lib64/R/bin/:$PATH
+    tar zxf bin_r/bin_r_$OSVER.tar.gz -C /usr/lib64
+    export LD_LIBRARY_PATH=/usr/lib64/R/lib64/R/lib:/usr/lib64/R/lib64/R/extlib:$LD_LIBRARY_PATH
+    export R_HOME=/usr/lib64/R/lib64/R
+    export PATH=/usr/lib64/R/bin/:$PATH
     ;;
 ubuntu*)
     apt update
@@ -45,14 +45,13 @@ function pkg() {
     make cleanall
     make
     popd
-    
+
     mv plr_src/gppkg/plr-*.gppkg bin_plr/
-	
 }
 
-function _main() {	
-	time install_gpdb
-	time pkg
+function _main() {
+    time install_gpdb
+    time pkg
 }
 
 _main "$@"
