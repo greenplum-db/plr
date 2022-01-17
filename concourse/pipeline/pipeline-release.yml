@@ -80,7 +80,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-r(.*)8.gppkg
+    regexp: plr/published/gpdb6/plr-rhel8.gppkg
 
 - name: plr_gpdb_rhel8_release
   type: gcs
@@ -103,7 +103,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-r(.*)7.gppkg
+    regexp: plr/published/gpdb6/plr-rhel7.gppkg
 
 - name: plr_gpdb_centos7_release
   type: gcs
@@ -126,7 +126,7 @@ resources:
   source:
     json_key: {{concourse-gcs-resources-service-account-key}}
     bucket: {{gcs-bucket-intermediates}}
-    regexp: plr/published/gpdb6/plr-r(.*)6.gppkg
+    regexp: plr/published/gpdb6/plr-rhel6.gppkg
 
 - name: plr_gpdb_centos6_release
   type: gcs

@@ -91,10 +91,11 @@ resources:
 - name: plr_src
   type: git
   source:
-    branch: sa/6X_rhel8
+    branch: gpdb6
     uri: https://github.com/greenplum-db/plr.git
 
-# centos 7
+# GPDB binary
+
 - name: bin_gpdb_rhel8
   type: gcs
   source:
