@@ -1,10 +1,7 @@
 # Open source PLR version
 PLR_OSS_VER=8.3.0.16
 
-# Pivotal package version
-PLR_VER=3.0
-PLR_REL=1
+PLR_VER=$(shell cat ../VERSION)
+# Hardcode to 0, hopefully we don't need to change it.
+PLR_REL=0
 
-# Embedded R version
-R_VER=3.3.3
-R_REL=1

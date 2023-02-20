@@ -1,57 +1,60 @@
 #!/bin/bash -l
 
-# OSVER : centos6, centos7, ubuntu18
-
 set -exo pipefail
 
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TOP_DIR=${CWDIR}/../../../
 
-source "${TOP_DIR}/gpdb_src/concourse/scripts/common.bash"
+# NOTE: Because of the R-3.3.3 requires a minimum zlib 1.2.5, but CentOS6 only have 1.2.3 in the
+# official repo, CentOS6 is not supported for now.
+function build_r() {
+    pushd "$(find r_src -maxdepth 1 -type d -regex ".*R.*")"
+    ./configure --prefix=$R_PREFIX --with-x=no --with-readline=no --enable-R-shlib --disable-rpath
+    make -j4
+    make install
 
-function install_pkg() {
-case $OSVER in
-centos* | rhel*)
-    yum install -y pkgconfig
-    tar zxf bin_r/bin_r_$OSVER.tar.gz -C /usr/lib64
-    export LD_LIBRARY_PATH=/usr/lib64/R/lib64/R/lib:/usr/lib64/R/lib64/R/extlib:$LD_LIBRARY_PATH
-    export R_HOME=/usr/lib64/R/lib64/R
-    export PATH=/usr/lib64/R/bin/:$PATH
-    ;;
-ubuntu*)
-    apt update
-    DEBIAN_FRONTEND=noninteractive apt install -y r-base pkg-config
-    ;;
-*)
-    echo "unknown OSVER = $OSVER"
-    exit 1
-    ;;
-esac
+    # Magic to make it work from any directory it is installed into
+    # given the fact R_HOME is set
+    sed -i "s|${R_PREFIX}/lib64/R|\$\{R_HOME\}|g" $R_PREFIX/bin/R
+    sed -i "s|${R_PREFIX}/lib64/R|\$\{R_HOME\}|g" $R_PREFIX/lib64/R/bin/R
+    popd
+
+    mkdir -p $R_PREFIX/lib64/R/extlib
+    cp /usr/lib64/libgomp.so* $R_PREFIX/lib64/R/extlib # libgomp.so.1.0.0
+    cp /usr/lib64/libgfortran.so*  $R_PREFIX/lib64/R/extlib # libgfortran.so.5.0.0
+    cp /usr/lib64/libquadmath.so*  $R_PREFIX/lib64/R/extlib # libquadmath.0.0.0
 }
 
-function pkg() {
-    ## Install R before source greenplum_path
-    install_pkg
-
-    [ -f /opt/gcc_env.sh ] && source /opt/gcc_env.sh
-    source /usr/local/greenplum-db-devel/greenplum_path.sh
-
-    export USE_PGXS=1
+function build_plr() {
     pushd plr_src/src
-    make clean
-    make
+    make USE_PGXS=1 -j4
     popd
+
     pushd plr_src/gppkg
-    make cleanall
-    make
+    make USE_PGXS=1
+
+    mkdir -p "$TOP_DIR/bin_plr"
+    # A version-less tarball is needed for the intermediates upload. As well as teh versioned file,
+    # which is needed for the release bucket
+    tar czf "$TOP_DIR/bin_plr/plr.tar.gz" ./*.gppkg
     popd
 
-    mv plr_src/gppkg/plr-*.gppkg bin_plr/
 }
 
-function _main() {
-    time install_gpdb
-    time pkg
-}
+case "$OS_NAME" in
+    rhel*)
+        R_PREFIX=/home/gpadmin/R_installation
+        export R_HOME=$R_PREFIX/lib64/R
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${R_PREFIX}/lib64/R/lib:${R_PREFIX}/lib64/R/extlib
+        export PATH=$R_PREFIX/bin/:$PATH
+        time build_r
+        ;;
+    ubuntu*)
+        # Just use R from apt repo
+        # R_HOME should not be set
+        R_PREFIX="$(R RHOME)"
+        ;;
+    *) echo "Unknown OS: $OS_NAME"; exit 1 ;;
+esac
 
-_main "$@"
+time build_plr

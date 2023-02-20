@@ -1,19 +1,20 @@
 PGXS := $(shell pg_config --pgxs)
 include $(PGXS)
 
+# GP_MAJORVERSION is defined in lib/postgresql/pgxs/src/Makefile.global
 GP_VERSION_NUM := $(GP_MAJORVERSION)
 
 OS=$(word 1,$(subst _, ,$(BLDARCH)))
-ARCH=$(shell uname -p)
+ARCH=x86_64
 
-R_RPM_FLAGS="--define 'r_dir $(R_HOME)' --define 'r_ver $(R_VER)' --define 'r_rel $(R_REL)'" 
+R_RPM_FLAGS="--define 'r_dir $(R_HOME)' --define 'r_ver $(R_VER)' --define 'r_rel $(R_REL)'"
 R_RPM=R-$(R_VER)-$(R_REL).$(ARCH).rpm
 
 RPM_ARGS=$(subst -, ,$*)
 RPM_NAME=$(word 1,$(RPM_ARGS))
 PLR_RPM=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).rpm
 PLR_RPM_FLAGS=--define 'plr_dir $(PLR_DIR)/src' --define 'plr_ver $(PLR_VER)' --define 'plr_rel $(PLR_REL)' --define 'r_ver $(R_VER)' --define 'r_dir $(R_HOME)'
-TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(GPDBVER)-$(ARCH).gppkg
+TARGET_GPPKG=plr-$(PLR_VER)-gp$(GP_VERSION_NUM)-$(OS)-$(ARCH).gppkg
 PLR_GPPKG=$(TARGET_GPPKG)
 EXTRA_CLEAN+=$(R_RPM) $(PLR_RPM) $(PLR_GPPKG)
 PWD=$(shell pwd)
@@ -38,9 +39,9 @@ ifdef DEPENDENT_RPMS
 		cp $${dep_rpm} gppkg/deps; \
 	done
 endif
-	source $(GPHOME)/greenplum_path.sh && gppkg --build gppkg
+	source $(GPHOME)/greenplum_path.sh && gppkg --build gppkg --filename $(PLR_GPPKG)
 
-distro: 
+distro:
 	$(MAKE) $(R_RPM) RPM_FLAGS=$(R_RPM_FLAGS)
 	PATH=$(INSTLOC)/bin:$(PATH) $(MAKE) $(PLR_RPM) RPM_FLAGS="$(PLR_RPM_FLAGS)"
 	$(MAKE) $(PLR_GPPKG) MAIN_RPM=$(PLR_RPM) DEPENDENT_RPMS=$(R_RPM)
