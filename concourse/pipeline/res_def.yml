@@ -287,35 +287,35 @@ resources:
   source:
     bucket: pivotal-gpdb-concourse-resources-prod
     json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: plr-(.*)-gp6-rhel6_x86_64.tar.gz
+    regexp: plr/released/gpdb6/plr-(.*)-gp6-rhel6_x86_64.tar.gz
 
 - name: bin_plr_gpdb6_rhel7_release
   type: gcs
   source:
     bucket: pivotal-gpdb-concourse-resources-prod
     json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: plr-(.*)-gp6-rhel7_x86_64.tar.gz
+    regexp: plr/released/gpdb6/plr-(.*)-gp6-rhel7_x86_64.tar.gz
 
 - name: bin_plr_gpdb6_rhel8_release
   type: gcs
   source:
     bucket: pivotal-gpdb-concourse-resources-prod
     json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: plr-(.*)-gp6-rhel8_x86_64.tar.gz
+    regexp: plr/released/gpdb6/plr-(.*)-gp6-rhel8_x86_64.tar.gz
 
 - name: bin_plr_gpdb6_ubuntu18_release
   type: gcs
   source:
     bucket: pivotal-gpdb-concourse-resources-prod
     json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: plr-(.*)-gp6-ubuntu18.04_x86_64.tar.gz
+    regexp: plr/released/gpdb6/plr-(.*)-gp6-ubuntu18.04_x86_64.tar.gz
 
 - name: bin_plr_gpdb7_rhel8_release
   type: gcs
   source:
     bucket: pivotal-gpdb-concourse-resources-prod
     json_key: ((concourse-gcs-resources-service-account-key))
-    regexp: plr-(.*)-gp7-rhel8_x86_64.tar.gz
+    regexp: plr/released/gpdb7/plr-(.*)-gp7-rhel8_x86_64.tar.gz
 
 # Other dependencies
 - name: slack_notify
