@@ -173,7 +173,7 @@ plan:
             unpack: true
         - put: #@ conf["release_bin"]
           params:
-            file: #@ conf["res_intermediates_bin"] + "/plr-*-*.tar.gz"
+            file: #@ conf["res_intermediates_bin"] + "/plr-*.gppkg"
 #@   end
 #@   for to_put in trigger["to_put_post"]:
 - #@ to_put
