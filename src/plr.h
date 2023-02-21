@@ -311,6 +311,75 @@ extern void R_RunExitFinalizers(void);
 	HeapTuple		tup; \
 	HeapTupleHeader	dnewtup; \
 	HeapTupleHeader	dtrigtup
+
+#if GP_VERSION_NUM >= 70000
+#define SET_INSERT_ARGS_567 \
+	do { \
+		nullablearg[5].value = DirectFunctionCall1(textin, CStringGetDatum("INSERT")); \
+		tup = trigdata->tg_trigtuple; \
+		dtrigtup = (HeapTupleHeader) palloc(tup->t_len); \
+		memcpy((char *) dtrigtup, (char *) tup->t_data, tup->t_len); \
+		HeapTupleHeaderSetDatumLength(dtrigtup, tup->t_len); \
+		HeapTupleHeaderSetTypeId(dtrigtup, tupdesc->tdtypeid); \
+		HeapTupleHeaderSetTypMod(dtrigtup, tupdesc->tdtypmod); \
+		nullablearg[6].value = PointerGetDatum(dtrigtup); \
+		nullablearg[6].isnull = false; \
+		nullablearg[7].value = (Datum) 0; \
+		nullablearg[7].isnull = true; \
+	} while (0)
+#define SET_DELETE_ARGS_567 \
+	do { \
+		nullablearg[5].value = DirectFunctionCall1(textin, CStringGetDatum("DELETE")); \
+		nullablearg[6].value = (Datum) 0; \
+		nullablearg[6].isnull = true; \
+		tup = trigdata->tg_trigtuple; \
+		dtrigtup = (HeapTupleHeader) palloc(tup->t_len); \
+		memcpy((char *) dtrigtup, (char *) tup->t_data, tup->t_len); \
+		HeapTupleHeaderSetDatumLength(dtrigtup, tup->t_len); \
+		HeapTupleHeaderSetTypeId(dtrigtup, tupdesc->tdtypeid); \
+		HeapTupleHeaderSetTypMod(dtrigtup, tupdesc->tdtypmod); \
+		nullablearg[7].value = PointerGetDatum(dtrigtup); \
+		nullablearg[7].isnull = false; \
+	} while (0)
+#define SET_UPDATE_ARGS_567 \
+	do { \
+		nullablearg[5].value = DirectFunctionCall1(textin, CStringGetDatum("UPDATE")); \
+		tup = trigdata->tg_newtuple; \
+		dnewtup = (HeapTupleHeader) palloc(tup->t_len); \
+		memcpy((char *) dnewtup, (char *) tup->t_data, tup->t_len); \
+		HeapTupleHeaderSetDatumLength(dnewtup, tup->t_len); \
+		HeapTupleHeaderSetTypeId(dnewtup, tupdesc->tdtypeid); \
+		HeapTupleHeaderSetTypMod(dnewtup, tupdesc->tdtypmod); \
+		nullablearg[6].value = PointerGetDatum(dnewtup); \
+		nullablearg[6].isnull = false; \
+		tup = trigdata->tg_trigtuple; \
+		dtrigtup = (HeapTupleHeader) palloc(tup->t_len); \
+		memcpy((char *) dtrigtup, (char *) tup->t_data, tup->t_len); \
+		HeapTupleHeaderSetDatumLength(dtrigtup, tup->t_len); \
+		HeapTupleHeaderSetTypeId(dtrigtup, tupdesc->tdtypeid); \
+		HeapTupleHeaderSetTypMod(dtrigtup, tupdesc->tdtypmod); \
+		nullablearg[7].value = PointerGetDatum(dtrigtup); \
+		nullablearg[7].isnull = false; \
+	} while (0)
+#define CONVERT_TUPLE_TO_DATAFRAME \
+	do { \
+		Oid			tupType; \
+		int32		tupTypmod; \
+		TupleDesc	tupdesc; \
+		HeapTuple	tuple = palloc(sizeof(HeapTupleData)); \
+		HeapTupleHeader	tuple_hdr = DatumGetHeapTupleHeader(nullablearg[i].value); \
+		tupType = HeapTupleHeaderGetTypeId(tuple_hdr); \
+		tupTypmod = HeapTupleHeaderGetTypMod(tuple_hdr); \
+		tupdesc = lookup_rowtype_tupdesc(tupType, tupTypmod); \
+		tuple->t_len = HeapTupleHeaderGetDatumLength(tuple_hdr); \
+		ItemPointerSetInvalid(&(tuple->t_self)); \
+		/* tuple->t_tableOid = InvalidOid; */\
+		tuple->t_data = tuple_hdr; \
+		PROTECT(el = pg_tuple_get_r_frame(1, &tuple, tupdesc)); \
+		ReleaseTupleDesc(tupdesc); \
+		pfree(tuple); \
+	} while (0)
+#else
 #define SET_INSERT_ARGS_567 \
 	do { \
 		arg[5] = DirectFunctionCall1(textin, CStringGetDatum("INSERT")); \
@@ -377,6 +446,7 @@ extern void R_RunExitFinalizers(void);
 		ReleaseTupleDesc(tupdesc); \
 		pfree(tuple); \
 	} while (0)
+#endif
 #define GET_ARG_NAMES \
 		char  **argnames; \
 		argnames = fetchArgNames(procTup, procStruct->pronargs)

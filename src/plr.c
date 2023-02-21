@@ -158,6 +158,18 @@ int R_SignalHandlers = 1;  /* Exposed in R_interface.h */
 
 #define CurrentTriggerData ((TriggerData *) fcinfo->context)
 
+#if GP_VERSION_NUM >= 70000
+#define ARG(arg_idx) \
+	nullablearg[arg_idx].value
+#define ARGNULL(arg_idx) \
+	nullablearg[arg_idx].isnull
+#else
+#define ARG(arg_idx) \
+	arg[arg_idx]
+#define ARGNULL(arg_idx) \
+	argnull[arg_idx]
+#endif
+
 /*
  * Structure for wrapping R_ParseVector call into R_TopLevelExec
  */
@@ -181,7 +193,11 @@ static plr_function *do_compile(FunctionCallInfo fcinfo,
 								plr_func_hashkey *hashkey);
 static void plr_protected_parse(void* data);
 static SEXP plr_parse_func_body(const char *body);
+#if GP_VERSION_NUM >= 70000
+static SEXP plr_convertargs(plr_function *function, NullableDatum *args, FunctionCallInfo fcinfo);
+#else
 static SEXP plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallInfo fcinfo);
+#endif
 static void plr_error_callback(void *arg);
 static Oid getNamespaceOidFromFunctionOid(Oid fnOid);
 static bool haveModulesTable(Oid nspOid);
@@ -601,8 +617,12 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	SEXP			rargs;
 	SEXP			rvalue;
 	Datum			retval;
+#if GP_VERSION_NUM >= 70000
+	NullableDatum   nullablearg[FUNC_MAX_ARGS];
+#else
 	Datum			arg[FUNC_MAX_ARGS];
 	bool			argnull[FUNC_MAX_ARGS];
+#endif
 	TriggerData	   *trigdata = (TriggerData *) fcinfo->context;
 	TupleDesc		tupdesc = trigdata->tg_relation->rd_att;
 	Datum		   *dvalues;
@@ -615,6 +635,7 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	TRIGGERTUPLEVARS;
 	ERRORCONTEXTCALLBACK;
 	int				i;
+
 
 	if (trigdata->tg_trigger->tgnargs > 0)
 		dvalues = palloc(trigdata->tg_trigger->tgnargs * sizeof(Datum));
@@ -632,30 +653,30 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	 * are mostly hardwired in advance
 	 */
 	/* first is trigger name */
-	arg[0] = DirectFunctionCall1(textin,
+	ARG(0) = DirectFunctionCall1(textin,
 				 CStringGetDatum(trigdata->tg_trigger->tgname));
-	argnull[0] = false;
+	ARGNULL(0) = false;
 
 	/* second is trigger relation oid */
-	arg[1] = ObjectIdGetDatum(trigdata->tg_relation->rd_id);
-	argnull[1] = false;
+	ARG(1) = ObjectIdGetDatum(trigdata->tg_relation->rd_id);
+	ARGNULL(1) = false;
 
 	/* third is trigger relation name */
-	arg[2] = DirectFunctionCall1(textin,
+	ARG(2) = DirectFunctionCall1(textin,
 				 CStringGetDatum(get_rel_name(trigdata->tg_relation->rd_id)));
-	argnull[2] = false;
+	ARGNULL(2) = false;
 
 	/* fourth is when trigger fired, i.e. BEFORE or AFTER */
 	if (TRIGGER_FIRED_BEFORE(trigdata->tg_event))
-		arg[3] = DirectFunctionCall1(textin,
+		ARG(3) = DirectFunctionCall1(textin,
 				 CStringGetDatum("BEFORE"));
 	else if (TRIGGER_FIRED_AFTER(trigdata->tg_event))
-		arg[3] = DirectFunctionCall1(textin,
+		ARG(3) = DirectFunctionCall1(textin,
 				 CStringGetDatum("AFTER"));
 	else
 		/* internal error */
 		elog(ERROR, "unrecognized tg_event");
-	argnull[3] = false;
+	ARGNULL(3) = false;
 
 	/*
 	 * fifth is level trigger fired, i.e. ROW or STATEMENT
@@ -664,28 +685,28 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	 */
 	if (TRIGGER_FIRED_FOR_STATEMENT(trigdata->tg_event))
 	{
-		arg[4] = DirectFunctionCall1(textin,
+		ARG(4) = DirectFunctionCall1(textin,
 				 CStringGetDatum("STATEMENT"));
 
 		if (TRIGGER_FIRED_BY_INSERT(trigdata->tg_event))
-			arg[5] = DirectFunctionCall1(textin, CStringGetDatum("INSERT"));
+			ARG(5) = DirectFunctionCall1(textin, CStringGetDatum("INSERT"));
 		else if (TRIGGER_FIRED_BY_DELETE(trigdata->tg_event))
-			arg[5] = DirectFunctionCall1(textin, CStringGetDatum("DELETE"));
+			ARG(5) = DirectFunctionCall1(textin, CStringGetDatum("DELETE"));
 		else if (TRIGGER_FIRED_BY_UPDATE(trigdata->tg_event))
-			arg[5] = DirectFunctionCall1(textin, CStringGetDatum("UPDATE"));
+			ARG(5) = DirectFunctionCall1(textin, CStringGetDatum("UPDATE"));
 		else
 			/* internal error */
 			elog(ERROR, "unrecognized tg_event");
 
-		arg[6] = (Datum) 0;
-		argnull[6] = true;
+		ARG(6) = (Datum) 0;
+		ARGNULL(6) = true;
 
-		arg[7] = (Datum) 0;
-		argnull[7] = true;
+		ARG(7) = (Datum) 0;
+		ARGNULL(7) = true;
 	}
 	else if (TRIGGER_FIRED_FOR_ROW(trigdata->tg_event))
 	{
-		arg[4] = DirectFunctionCall1(textin,
+		ARG(4) = DirectFunctionCall1(textin,
 				 CStringGetDatum("ROW"));
 
 		if (TRIGGER_FIRED_BY_INSERT(trigdata->tg_event))
@@ -702,8 +723,8 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 		/* internal error */
 		elog(ERROR, "unrecognized tg_event");
 
-	argnull[4] = false;
-	argnull[5] = false;
+	ARGNULL(4) = false;
+	ARGNULL(5) = false;
 
 	/*
 	 * finally, ninth argument is a text array of trigger arguments
@@ -717,8 +738,8 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	array = construct_md_array(dvalues, NULL, ndims, dims, lbs,
 								TEXTOID, -1, false, 'i');
 
-	arg[8] = PointerGetDatum(array);
-	argnull[8] = false;
+	ARG(8) = PointerGetDatum(array);
+	ARGNULL(8) = false;
 
 	/*
 	 * All done building args; from this point it is just like
@@ -728,7 +749,11 @@ plr_trigger_handler(PG_FUNCTION_ARGS)
 	PROTECT(fun = function->fun);
 
 	/* Convert all call arguments */
+#if GP_VERSION_NUM >= 70000
+	PROTECT(rargs = plr_convertargs(function, nullablearg, fcinfo));
+#else
 	PROTECT(rargs = plr_convertargs(function, arg, argnull, fcinfo));
+#endif
 
 	/* Call the R function */
 	PROTECT(rvalue = call_r_func(fun, rargs));
@@ -766,7 +791,11 @@ plr_func_handler(PG_FUNCTION_ARGS)
 	PROTECT(fun = function->fun);
 
 	/* Convert all call arguments */
+#if GP_VERSION_NUM >= 70000
+	PROTECT(rargs = plr_convertargs(function, fcinfo->args, fcinfo));
+#else
 	PROTECT(rargs = plr_convertargs(function, fcinfo->arg, fcinfo->argnull, fcinfo));
+#endif
 
 	/* Call the R function */
 	PROTECT(rvalue = call_r_func(fun, rargs));
@@ -966,7 +995,11 @@ do_compile(FunctionCallInfo fcinfo,
 
 #ifdef HAVE_WINDOW_FUNCTIONS
 	/* Flag for window functions */
+#if GP_VERSION_NUM >= 70000
+	function->iswindow = (procStruct->prokind == PROKIND_WINDOW);
+#else
 	function->iswindow = procStruct->proiswindow;
+#endif
 #endif
 
 	/* Lookup the pg_language tuple by Oid*/
@@ -1084,7 +1117,11 @@ do_compile(FunctionCallInfo fcinfo,
 	
 			for (i = 0; i < function->result_natts; i++)
 			{
+#if GP_VERSION_NUM >= 70000
+				function->result_fld_elem_typid[i] = get_element_type(tupdesc->attrs[i].atttypid);
+#else
 				function->result_fld_elem_typid[i] = get_element_type(tupdesc->attrs[i]->atttypid);
+#endif
 				if (OidIsValid(function->result_fld_elem_typid[i]))
 				{
 					get_type_io_data(function->result_fld_elem_typid[i], IOFunc_input,
@@ -1505,8 +1542,13 @@ call_r_func(SEXP fun, SEXP rargs)
 	return ans;
 }
 
+#if GP_VERSION_NUM >= 70000
+static SEXP
+plr_convertargs(plr_function *function, NullableDatum *nullablearg, FunctionCallInfo fcinfo)
+#else
 static SEXP
 plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallInfo fcinfo)
+#endif
 {
 	int		i;
 	int		m = 1;
@@ -1542,7 +1584,7 @@ plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallI
 		if (!function->iswindow)
 		{
 #endif
-			if (argnull[i])
+			if (ARGNULL(i))
 			{
 				/* fast track for null arguments */
 				PROTECT(el = R_NilValue);
@@ -1555,7 +1597,7 @@ plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallI
 			else if (function->arg_elem[i] == InvalidOid)
 			{
 				/* for scalar args, convert to a one row vector */
-				Datum		dvalue = arg[i];
+				Datum		dvalue = ARG(i);
 				Oid			arg_typid = function->arg_typid[i];
 				FmgrInfo	arg_out_func = function->arg_out_func[i];
 
@@ -1564,7 +1606,7 @@ plr_convertargs(plr_function *function, Datum *arg, bool *argnull, FunctionCallI
 			else
 			{
 				/* better be a pg array arg, convert to a multi-row vector */
-				Datum		dvalue = (Datum) PG_DETOAST_DATUM(arg[i]);
+				Datum		dvalue = (Datum) PG_DETOAST_DATUM(ARG(i));
 				FmgrInfo	out_func = function->arg_elem_out_func[i];
 				int			typlen = function->arg_elem_typlen[i];
 				bool		typbyval = function->arg_elem_typbyval[i];

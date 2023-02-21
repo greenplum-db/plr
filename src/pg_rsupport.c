@@ -603,6 +603,9 @@ plr_SPI_execp(SEXP rsaved_plan, SEXP rargvalues)
 SEXP
 plr_SPI_lastoid(void)
 {
+#if GP_VERSION_NUM >= 70000
+	error("plr_SPI_lastoid is not supported on GP7");
+#else
 	SEXP	result;
 
 	PROTECT(result = NEW_INTEGER(1));
@@ -610,6 +613,7 @@ plr_SPI_lastoid(void)
 	UNPROTECT(1);
 
 	return result;
+#endif
 }
 
 /*
