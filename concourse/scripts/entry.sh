@@ -116,7 +116,7 @@ function setup_gpadmin_bashrc() {
 function install_build_deps() {
     case "$OS_NAME" in
         rhel*)
-            yum install -y gcc-gfortran
+            yum install -y gcc-gfortran pcre-devel
             ;;
         ubuntu*)
             apt update
