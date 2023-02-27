@@ -60,10 +60,6 @@ CREATE TABLE plr_modules (
 	modsrc text
 ) DISTRIBUTED REPLICATED;
 
-CREATE TABLE module_test (i int) DISTRIBUTED BY (i);
-
-INSERT INTO module_test select * from generate_series(1, 10);
-
 CREATE OR REPLACE FUNCTION pg_test_module_load(text) RETURNS TEXT AS
 'pg.test.module.load(arg1)' LANGUAGE plr;
 
@@ -73,11 +69,11 @@ VALUES (0, 'pg.test.module.load <-function(msg) {print(msg)}');
 select reload_plr_modules();
 
 -- force to reload on segment
-select count(reload_plr_modules()) from module_test;
+select reload_plr_modules() from gp_dist_random('gp_id');
 
 select pg_test_module_load('hello world');
 
-select count(pg_test_module_load('hello world')) from module_test;
+select pg_test_module_load('hello world') from gp_dist_random('gp_id');
 
 --
 -- a variety of plr functions
@@ -370,5 +366,4 @@ DROP TYPE IF EXISTS dtup CASCADE;
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 
 DROP TABLE IF EXISTS foo CASCADE;
-DROP TABLE IF EXISTS module_test CASCADE;
 -- end_ignore
