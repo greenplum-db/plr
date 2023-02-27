@@ -403,7 +403,7 @@ select test_dta2();
 -- generates expected error
 create or replace function test_dia1() returns int[] as 'as.data.frame(array(letters[1:10], c(2,5)))' language 'plr';
 select test_dia1() as error;
-ERROR:  invalid input syntax for integer: "a"
+ERROR:  invalid input syntax for type integer: "a"
 CONTEXT:  In PL/R function test_dia1
 create or replace function test_dtup() returns setof record as 'data.frame(letters[1:10],1:10)' language 'plr';
 select * from test_dtup() as t(f1 text, f2 int);
