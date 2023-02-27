@@ -13,7 +13,8 @@ endif
 include release.mk
 CONTROL_NAME=plr_deb.control
 PLR_DEB=plr-$(PLR_VER)-$(PLR_REL).$(ARCH).deb
-TARGET_GPPKG=plr-$(PLR_VER).$(PLR_REL)-$(GPDBVER)-$(ARCH).gppkg
+TARGET_GPPKG=plr-$(PLR_VER)-gp$(GP_VERSION_NUM)-$(OS)-$(ARCH).gppkg
+PLR_GPPKG=$(TARGET_GPPKG)
 PWD=$(shell pwd)
 
 .PHONY: distro
@@ -36,7 +37,7 @@ ifdef DEPENDENT_DEBS
 		cp $${dep_deb} gppkg/deps; \
 	done
 endif
-	gppkg --build gppkg
+	gppkg --build gppkg --filename $(PLR_GPPKG)
 
 clean:
 	rm -rf UBUNTU
