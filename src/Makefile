@@ -24,7 +24,6 @@ OBJS		:= $(SRCS:.c=.o)
 SHLIB_LINK	+= -L$(r_libdir1x) -L$(r_libdir2x) -lR
 DATA		= plr--8.3.0.16.sql plr--unpackaged--8.3.0.16.sql
 DOCS		= README.plr
-REGRESS		= plr bad_fun
 EXTRA_CLEAN	= doc/html/* doc/plr-US.aux doc/plr-*.log doc/plr-*.out doc/plr-*.pdf doc/plr-*.tex-pdf
 
 ifdef USE_PGXS
@@ -73,6 +72,11 @@ override CPPFLAGS += -DPKGLIBDIR=\"$(pkglibdir)\" -DDLSUFFIX=\"$(DLSUFFIX)\"
 override CPPFLAGS += -DR_HOME_DEFAULT=\"$(rhomedef)\"
 
 REGRESS_OPTS = --dbname=$(PL_TESTDB) --print-failure-diffs
+ifeq ($(GP_MAJORVERSION), 7)
+	REGRESS_OPTS += --schedule=regress/plr_schedule_7X
+else
+	REGRESS_OPTS += --schedule=regress/plr_schedule
+endif
 
 .PHONY: release
 release:
