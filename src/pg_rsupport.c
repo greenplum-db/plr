@@ -604,7 +604,7 @@ SEXP
 plr_SPI_lastoid(void)
 {
 #if GP_VERSION_NUM >= 70000
-	error("SPI_lastoid is not supported.");
+	error("SPI_lastoid is not supported on Greenplum 7.");
 #else
 	SEXP	result;
 
