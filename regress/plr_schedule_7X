@@ -1,2 +1,3 @@
-test: plr
+test: plr_7X
+test: bad_fun
 test: uninstall
