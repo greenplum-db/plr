@@ -604,7 +604,7 @@ SEXP
 plr_SPI_lastoid(void)
 {
 #if GP_VERSION_NUM >= 70000
-	error("plr_SPI_lastoid is not supported on GP7");
+	error("SPI_lastoid is not supported.");
 #else
 	SEXP	result;
 
