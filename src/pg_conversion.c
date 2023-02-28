@@ -476,7 +476,11 @@ pg_tuple_get_r_frame(int ntuples, HeapTuple *tuples, TupleDesc tupdesc)
 	/* Count non-dropped attributes so we can later ignore the dropped ones */
 	for (j = 0; j < nc; j++)
 	{
+#if GP_VERSION_NUM >= 70000
+		if (!tupdesc->attrs[j].attisdropped)
+#else
 		if (!tupdesc->attrs[j]->attisdropped)
+#endif
 			nc_non_dropped++;
 	}
 
@@ -501,8 +505,13 @@ pg_tuple_get_r_frame(int ntuples, HeapTuple *tuples, TupleDesc tupdesc)
 		char		typalign;
 
 		/* ignore dropped attributes */
+#if GP_VERSION_NUM >= 70000
+		if (tupdesc->attrs[j].attisdropped)
+			continue;
+#else
 		if (tupdesc->attrs[j]->attisdropped)
 			continue;
+#endif
 
 		/* set column name */
 		SET_COLUMN_NAMES;
@@ -800,7 +809,11 @@ get_trigger_tuple(SEXP rval, plr_function *function, FunctionCallInfo fcinfo, bo
 	 */
 	for (j = 0; j < nc; j++)
 	{
+#if GP_VERSION_NUM >= 70000
+		if (tupdesc->attrs[j].attisdropped)
+#else
 		if (tupdesc->attrs[j]->attisdropped)
+#endif
 			nc_dropped++;
 	}
 
@@ -863,7 +876,11 @@ get_trigger_tuple(SEXP rval, plr_function *function, FunctionCallInfo fcinfo, bo
 		for (j = 0; j < nc + nc_dropped; j++)
 		{
 			/* insert NULL for dropped attributes */
+#if GP_VERSION_NUM >= 70000
+			if (tupdesc->attrs[j].attisdropped)
+#else
 			if (tupdesc->attrs[j]->attisdropped)
+#endif
 				values[j] = NULL;
 			else
 			{
@@ -1878,7 +1895,11 @@ get_frame_tuplestore(SEXP rval,
 	HeapTuple			tuple;
 	TupleDesc			tupdesc = attinmeta->tupdesc;
 	int					tupdesc_nc = tupdesc->natts;
+#if GP_VERSION_NUM >= 70000
+	Form_pg_attribute  attrs = tupdesc->attrs;
+#else
 	Form_pg_attribute  *attrs = tupdesc->attrs;
+#endif
 	MemoryContext		oldcontext;
 	int					i, j;
 	int					nr = 0;
@@ -1925,7 +1946,11 @@ get_frame_tuplestore(SEXP rval,
 	{
 		PROTECT(dfcol = VECTOR_ELT(rval, j));
 		if((!isFactor(dfcol)) &&
+#if GP_VERSION_NUM >= 70000
+		   ((attrs[j].attndims == 0) ||
+#else
 		   ((attrs[j]->attndims == 0) ||
+#endif
 			(TYPEOF(dfcol) != VECSXP)))
 		{
 			SEXP	obj;
@@ -1934,7 +1959,11 @@ get_frame_tuplestore(SEXP rval,
 			SET_VECTOR_ELT(result, j, obj);
 			UNPROTECT(1);
 		}
+#if GP_VERSION_NUM >= 70000
+		else if(attrs[j].attndims != 0)	/* array data type */
+#else
 		else if(attrs[j]->attndims != 0)	/* array data type */
+#endif
 		{
 			SEXP	obj;
 
@@ -2010,9 +2039,17 @@ get_frame_tuplestore(SEXP rval,
 			}
 			else
 			{
+#if GP_VERSION_NUM >= 70000
+				if ((attrs[j].attndims != 0) || (STRING_ELT(dfcol, i) != NA_STRING))
+#else
 				if ((attrs[j]->attndims != 0) || (STRING_ELT(dfcol, i) != NA_STRING))
+#endif
 				{
+#if GP_VERSION_NUM >= 70000
+					if (attrs[j].attndims == 0)
+#else
 					if (attrs[j]->attndims == 0)
+#endif
 					{
 						values[j] = pstrdup(CHAR(STRING_ELT(dfcol, i)));
 					}
@@ -2032,10 +2069,30 @@ get_frame_tuplestore(SEXP rval,
 						}
 						else
 						{
+#if GP_VERSION_NUM >= 70000
+							LOCAL_FCINFO(fake_fcinfo, 1);
+#else
 							FunctionCallInfoData	fake_fcinfo;
+#endif
 							FmgrInfo				flinfo;
 							Datum					dvalue;
-							
+#if GP_VERSION_NUM >= 70000	
+							MemSet(&fake_fcinfo, 0, SizeForFunctionCallInfo(1));
+							MemSet(&flinfo, 0, sizeof(flinfo));
+							fake_fcinfo->flinfo = &flinfo;
+							flinfo.fn_mcxt = CurrentMemoryContext;
+							fake_fcinfo->context = NULL;
+							fake_fcinfo->resultinfo = NULL;
+							fake_fcinfo->isnull = false;
+							fake_fcinfo->nargs = 1;
+							fake_fcinfo->args[0].value = arr_datum;
+							fake_fcinfo->args[0].isnull= false;
+							dvalue = (*array_out)(&fake_fcinfo);
+							if (fake_fcinfo->isnull)
+								values[j] = NULL;
+							else
+								values[j] = DatumGetCString(dvalue);
+#else
 							MemSet(&fake_fcinfo, 0, sizeof(fake_fcinfo));
 							MemSet(&flinfo, 0, sizeof(flinfo));
 							fake_fcinfo.flinfo = &flinfo;
@@ -2051,6 +2108,7 @@ get_frame_tuplestore(SEXP rval,
 								values[j] = NULL;
 							else
 								values[j] = DatumGetCString(dvalue);
+#endif
 						}
 					}
 				}

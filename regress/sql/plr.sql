@@ -60,10 +60,6 @@ CREATE TABLE plr_modules (
 	modsrc text
 ) DISTRIBUTED REPLICATED;
 
-CREATE TABLE module_test (i int) DISTRIBUTED BY (i);
-
-INSERT INTO module_test select * from generate_series(1, 10);
-
 CREATE OR REPLACE FUNCTION pg_test_module_load(text) RETURNS TEXT AS
 'pg.test.module.load(arg1)' LANGUAGE plr;
 
@@ -73,11 +69,11 @@ VALUES (0, 'pg.test.module.load <-function(msg) {print(msg)}');
 select reload_plr_modules();
 
 -- force to reload on segment
-select count(reload_plr_modules()) from module_test;
+select reload_plr_modules() from gp_dist_random('gp_id');
 
 select pg_test_module_load('hello world');
 
-select count(pg_test_module_load('hello world')) from module_test;
+select pg_test_module_load('hello world') from gp_dist_random('gp_id');
 
 --
 -- a variety of plr functions
@@ -299,7 +295,7 @@ if (arg2 < 1 || arg3 < 1 || arg4 < 1)
 if (arg2 > dim(arg1)[1] || arg3 > dim(arg1)[2] || arg4 > dim(arg1)[3])
   return(NA)
 return(arg1[arg2,arg3,arg4])
-' language 'plr' WITH (isstrict);
+' language 'plr' STRICT;
 
 select arr3d('{{{111,112},{121,122},{131,132}},{{211,212},{221,222},{231,232}}}',2,3,1) as "231";
 -- for sake of comparison, see what normal pgsql array operations produces
@@ -314,7 +310,7 @@ select f1[0][1][1] is null as "NULL" from (select '{{{111,112},{121,122},{131,13
 --
 -- test 3D array return value
 --
-create or replace function arr3d(_int4) returns int4[] as 'return(arg1)' language 'plr' WITH (isstrict);
+create or replace function arr3d(_int4) returns int4[] as 'return(arg1)' language 'plr' STRICT;
 select arr3d('{{{111,112},{121,122},{131,132}},{{211,212},{221,222},{231,232}}}');
 
 
@@ -370,5 +366,4 @@ DROP TYPE IF EXISTS dtup CASCADE;
 DROP TYPE IF EXISTS mtup CASCADE; 
 DROP TYPE IF EXISTS vtup CASCADE; 
 DROP TABLE IF EXISTS foo CASCADE;
-DROP TABLE IF EXISTS module_test CASCADE;
 -- end_ignore

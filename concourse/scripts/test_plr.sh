@@ -15,6 +15,7 @@ function _main() {
     gpstop -ra
 
     pushd /home/gpadmin/plr_src/src
+
     time make USE_PGXS=1 installcheck
     popd
 }
