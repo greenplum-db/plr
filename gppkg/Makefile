@@ -21,10 +21,15 @@ include $(PLR_DIR)/gppkg/release.mk
 #
 # Generic rules to build gppkgs included here
 #
+
+ifeq ($(GP_MAJORVERSION), 7)
+include gppkg_v2.mk
+else
 ifneq (,$(findstring ubuntu,$(OS)))
 include gppkg_deb.mk
 else
 include gppkg_rpm.mk
+endif
 endif
 
 
