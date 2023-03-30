@@ -150,6 +150,7 @@ case "$1" in
         install_build_deps
         su gpadmin -c \
             "source /home/gpadmin/.bashrc &&\
+            export GPDB_VERSION=${GPDB_VERSION} &&\
             /home/gpadmin/plr_src/concourse/scripts/build_plr.sh"
         ;;
     test)
@@ -159,6 +160,7 @@ case "$1" in
         make_cluster
         su gpadmin -c \
             "source /home/gpadmin/.bashrc &&\
+            export GPDB_VERSION=${GPDB_VERSION}  &&\
             /home/gpadmin/plr_src/concourse/scripts/test_plr.sh"
         ;;
     *)

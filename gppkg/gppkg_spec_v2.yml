@@ -1,7 +1,0 @@
-Pkgname: pljava
-Format: V2
-Version: 3.1.0-0
-Architecture: unknown
-OS: 
-GPDBVersion: 7
-Description: Provides a procedural language implementation of R for the Greenplum Database.

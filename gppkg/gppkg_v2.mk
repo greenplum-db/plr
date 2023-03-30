@@ -29,7 +29,7 @@ gppkg_spec_v2.yml: gppkg_spec_v2.yml.in
 ifeq ($(PACK_R), true)
 	mkdir -p gppkg_build/files/ext/R-$(R_VER)
 	cp -RL $(R_HOME)/* gppkg_build/files/ext/R-$(R_VER)
-	cat $< | sed "s/#r_ver/$(R_VER)/g" > gppkg_build/30-plr.conf
+	cat 30-plr.conf.in | sed "s/#r_ver/$(R_VER)/g" > gppkg_build/30-plr.conf
 	mkdir -p gppkg_build/files/etc/environment.d
 	cp gppkg_build/30-plr.conf gppkg_build/files/etc/environment.d
 endif

@@ -317,6 +317,14 @@ resources:
     json_key: ((concourse-gcs-resources-service-account-key))
     regexp: plr/released/gpdb7/plr-(.*)-gp7-rhel8_x86_64.tar.gz
 
+# gppkg_v2
+- name: bin_gppkg_v2
+  type: gcs
+  source:
+    bucket: pivotal-gpdb-concourse-resources-prod
+    json_key: ((concourse-gcs-resources-service-account-key))
+    regexp: gppkg/released/gpdb7/gppkg-(.*).tar.gz
+
 # Other dependencies
 - name: slack_notify
   type: slack-alert

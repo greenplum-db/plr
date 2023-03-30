@@ -31,10 +31,15 @@ function build_plr() {
     popd
 
     pushd plr_src/gppkg
-    make USE_PGXS=1
+
+    if [[ ${GPDB_VERSION} == "7" ]]; then
+        GPPKG="$TOP_DIR/bin_gppkg_v2/gppkg"
+        PACK_R=true
+    fi
+    make USE_PGXS=1 GPPKG=${GPPKG} PACK_R=${PACK_R}
 
     mkdir -p "$TOP_DIR/bin_plr"
-    # A version-less tarball is needed for the intermediates upload. As well as teh versioned file,
+    # A version-less tarball is needed for the intermediates upload. As well as the versioned file,
     # which is needed for the release bucket
     tar czf "$TOP_DIR/bin_plr/plr.tar.gz" ./*.gppkg
     popd
