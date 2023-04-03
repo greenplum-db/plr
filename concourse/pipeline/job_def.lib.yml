@@ -203,7 +203,6 @@ input_mapping:
   bin_gpdb: #@ conf["res_gpdb_bin"]
 params:
   BUILD_TYPE: #@ conf["build_type"]
-  GPDB_VERSION: #@ conf["gpdb_ver"]
 #@ end
 
 #@ def _test_task(conf):
@@ -230,8 +229,6 @@ in_parallel:
     image: #@ image
     input_mapping:
       bin_gpdb: #@ conf["res_gpdb_bin"]
-    params:
-      GPDB_VERSION: #@ conf["gpdb_ver"]
 #@   end
 #@ end
 

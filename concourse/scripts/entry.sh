@@ -44,6 +44,10 @@ _determine_os() {
   echo "${name}${version}"
 }
 
+_determine_gp_major_version() {
+    grep -oP '.*GP_MAJORVERSION.*"\K[^"]+' "/usr/local/greenplum-db-devel/include/pg_config.h"
+}
+
 OS_NAME=$(_determine_os)
 # Needed by gppkg Makefile
 BLDARCH="${OS_NAME}_x86_64"
@@ -101,6 +105,16 @@ function install_gpdb() {
     [ ! -d /usr/local/greenplum-db-devel ] && mkdir -p /usr/local/greenplum-db-devel
     tar -xzf "${CONCOURSE_WORK_DIR}"/bin_gpdb/*.tar.gz -C /usr/local/greenplum-db-devel
     chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel
+    GP_MAJOR_VERSION=$(_determine_gp_major_version)
+}
+
+# The new gppkg is not a part of gpdb binary yet
+function setup_gppkg() {
+    if [ -f "$CONCOURSE_WORK_DIR/bin_gppkg/gppkg" ]; then
+        # Rename the old gppkg
+        mv /usr/local/greenplum-db-devel/bin/gppkg /usr/local/greenplum-db-devel/bin/gppkg.old
+        cp "$CONCOURSE_WORK_DIR/bin_gppkg/gppkg" /usr/local/greenplum-db-devel/bin
+    fi
 }
 
 function setup_gpadmin_bashrc() {
@@ -108,6 +122,7 @@ function setup_gpadmin_bashrc() {
         echo "source /usr/local/greenplum-db-devel/greenplum_path.sh"
         echo "export OS_NAME=${OS_NAME}"
         echo "export BLDARCH=${BLDARCH}"
+        echo "export GP_MAJOR_VERSION=${GP_MAJOR_VERSION}"
     } >> /home/gpadmin/.bashrc
 }
 
@@ -142,6 +157,7 @@ function install_test_deps() {
 setup_gpadmin
 install_gpdb
 setup_gpadmin_bashrc
+setup_gppkg
 
 # Do the special setup with root permission for the each task, then run the real task script with
 # gpadmin. bashrc won't be read by 'su', it needs to be sourced explicitly.
@@ -150,7 +166,6 @@ case "$1" in
         install_build_deps
         su gpadmin -c \
             "source /home/gpadmin/.bashrc &&\
-            export GPDB_VERSION=${GPDB_VERSION} &&\
             /home/gpadmin/plr_src/concourse/scripts/build_plr.sh"
         ;;
     test)
@@ -160,7 +175,6 @@ case "$1" in
         make_cluster
         su gpadmin -c \
             "source /home/gpadmin/.bashrc &&\
-            export GPDB_VERSION=${GPDB_VERSION}  &&\
             /home/gpadmin/plr_src/concourse/scripts/test_plr.sh"
         ;;
     *)

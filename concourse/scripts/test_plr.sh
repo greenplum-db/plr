@@ -11,8 +11,8 @@ function _main() {
     local tmp_dir=$(mktemp -d)
     pushd "${tmp_dir}"
     tar xfv /home/gpadmin/bin_plr/plr.tar.gz
-    if [[ ${GPDB_VERSION} == "7" ]]; then
-        ${TOP_DIR}/bin_gppkg_v2/gppkg install -a ./*.gppkg
+    if [[ ${GP_MAJOR_VERSION} == "7" ]]; then
+        "${TOP_DIR}/bin_gppkg_v2/gppkg" install -a ./*.gppkg
     else
 	gppkg --install ./*.gppkg
     fi

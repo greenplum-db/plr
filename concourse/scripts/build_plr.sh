@@ -2,8 +2,7 @@
 
 set -exo pipefail
 
-CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TOP_DIR=${CWDIR}/../../../
+TOP_DIR=/home/gpadmin
 
 # NOTE: Because of the R-3.3.3 requires a minimum zlib 1.2.5, but CentOS6 only have 1.2.3 in the
 # official repo, CentOS6 is not supported for now.
@@ -32,9 +31,14 @@ function build_plr() {
 
     pushd plr_src/gppkg
 
-    if [[ ${GPDB_VERSION} == "7" ]]; then
+    if [[ ${GP_MAJOR_VERSION} == "7" ]]; then
         GPPKG="$TOP_DIR/bin_gppkg_v2/gppkg"
-        PACK_R=true
+        case "$OS_NAME" in
+            rhel*)
+                PACK_R=true
+                ;;
+            *) echo "Unknown OS: $OS_NAME"; exit 1 ;;
+        esac
     fi
     make USE_PGXS=1 GPPKG=${GPPKG} PACK_R=${PACK_R}
 
