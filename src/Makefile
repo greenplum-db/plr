@@ -73,7 +73,7 @@ override CPPFLAGS += -DPKGLIBDIR=\"$(pkglibdir)\" -DDLSUFFIX=\"$(DLSUFFIX)\"
 override CPPFLAGS += -DR_HOME_DEFAULT=\"$(rhomedef)\"
 
 REGRESS_OPTS = --dbname=$(PL_TESTDB) --print-failure-diffs
-REGRESS_OPTS += --schedule=../regress/plr_schedule
+REGRESS_OPTS += --schedule=../regress/plr_schedule --init-file=../regress/init_file
 
 .PHONY: release
 release:

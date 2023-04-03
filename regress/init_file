@@ -1,0 +1,8 @@
+-- start_matchignore
+-- end_matchignore
+
+-- start_matchsubs
+# different error message on GP6 & 7
+m/ERROR:  invalid input syntax for.*integer/
+s/ERROR:  invalid input syntax for.*integer/ERROR:  invalid input syntax for integer/
+-- end_matchsubs
