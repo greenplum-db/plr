@@ -2,8 +2,7 @@
 
 set -exo pipefail
 
-CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TOP_DIR=${CWDIR}/../../../
+TOP_DIR=/home/gpadmin
 
 function install_gppkg() {
     if [[ ${GP_MAJOR_VERSION} == "7" ]]; then
