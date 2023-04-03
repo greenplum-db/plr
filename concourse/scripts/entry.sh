@@ -108,15 +108,6 @@ function install_gpdb() {
     GP_MAJOR_VERSION=$(_determine_gp_major_version)
 }
 
-# The new gppkg is not a part of gpdb binary yet
-function setup_gppkg() {
-    if [ -f "$CONCOURSE_WORK_DIR/bin_gppkg/gppkg" ]; then
-        # Rename the old gppkg
-        mv /usr/local/greenplum-db-devel/bin/gppkg /usr/local/greenplum-db-devel/bin/gppkg.old
-        cp "$CONCOURSE_WORK_DIR/bin_gppkg/gppkg" /usr/local/greenplum-db-devel/bin
-    fi
-}
-
 function setup_gpadmin_bashrc() {
     {
         echo "source /usr/local/greenplum-db-devel/greenplum_path.sh"
@@ -157,7 +148,6 @@ function install_test_deps() {
 setup_gpadmin
 install_gpdb
 setup_gpadmin_bashrc
-setup_gppkg
 
 # Do the special setup with root permission for the each task, then run the real task script with
 # gpadmin. bashrc won't be read by 'su', it needs to be sourced explicitly.
