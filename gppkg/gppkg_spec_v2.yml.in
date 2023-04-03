@@ -1,0 +1,7 @@
+Pkgname: plr
+Format: V2
+Version: #gppkgver
+Architecture: #arch
+OS: #os
+GPDBVersion: #gpver
+Description: Provides a procedural language implementation of R for the Greenplum Database.

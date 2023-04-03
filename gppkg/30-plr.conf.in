@@ -1,0 +1,7 @@
+R_HOME=$GPHOME/ext/R-#r_ver
+LD_LIBRARY_PATH=$R_HOME/lib:$R_HOME/extlib:$LD_LIBRARY_PATH
+PATH=$R_HOME/bin:$PATH
+
+export R_HOME
+export LD_LIBRARY_PATH
+export PATH

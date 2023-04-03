@@ -44,6 +44,10 @@ _determine_os() {
   echo "${name}${version}"
 }
 
+_determine_gp_major_version() {
+    grep -oP '.*GP_MAJORVERSION.*"\K[^"]+' "/usr/local/greenplum-db-devel/include/pg_config.h"
+}
+
 OS_NAME=$(_determine_os)
 # Needed by gppkg Makefile
 BLDARCH="${OS_NAME}_x86_64"
@@ -101,6 +105,7 @@ function install_gpdb() {
     [ ! -d /usr/local/greenplum-db-devel ] && mkdir -p /usr/local/greenplum-db-devel
     tar -xzf "${CONCOURSE_WORK_DIR}"/bin_gpdb/*.tar.gz -C /usr/local/greenplum-db-devel
     chown -R gpadmin:gpadmin /usr/local/greenplum-db-devel
+    GP_MAJOR_VERSION=$(_determine_gp_major_version)
 }
 
 function setup_gpadmin_bashrc() {
@@ -108,6 +113,7 @@ function setup_gpadmin_bashrc() {
         echo "source /usr/local/greenplum-db-devel/greenplum_path.sh"
         echo "export OS_NAME=${OS_NAME}"
         echo "export BLDARCH=${BLDARCH}"
+        echo "export GP_MAJOR_VERSION=${GP_MAJOR_VERSION}"
     } >> /home/gpadmin/.bashrc
 }
 

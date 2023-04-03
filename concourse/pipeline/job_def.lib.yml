@@ -62,7 +62,7 @@ build_type: #@ "Release" if release_build else "Debug"
 #@ def rhel8_gpdb7_conf(release_build=False):
 res_build_image: rocky8-gpdb7-image-build
 res_test_images: [rocky8-gpdb7-image-test, rhel8-gpdb7-image-test]
-res_gpdb_bin: #@ "bin_gpdb7_rhel8" + ("" if release_build else "_debug")
+res_gpdb_bin: #@ "bin_gpdb7_el8" + ("" if release_build else "_debug")
 res_intermediates_bin: #@ inter_bin_name("bin_plr_gpdb7_rhel8_intermediates", release_build)
 release_bin: bin_plr_gpdb7_rhel8_release
 os: rhel8
@@ -189,6 +189,9 @@ config:
     - name: r_src
     - name: plr_src
     - name: gpdb_src
+#@ if conf["gpdb_ver"] == 7:
+    - name: bin_gppkg_v2
+#@ end
   outputs:
     - name: bin_plr
   run:
@@ -216,6 +219,9 @@ in_parallel:
         - name: plr_src
         - name: bin_plr
         - name: gpdb_src
+#@ if conf["gpdb_ver"] == 7:
+        - name: bin_gppkg_v2
+#@ end
       run:
         path: plr_src/concourse/scripts/entry.sh
         args:
@@ -238,6 +244,9 @@ in_parallel:
 #@   add_res_by_name(res_map, "r_src")
 #@   add_res_by_name(res_map, "bin_plr_intermediates")
 #@   add_res_by_conf(res_map, conf)
+#@ if conf["gpdb_ver"] == 7:
+#@   add_res_by_name(res_map, "bin_gppkg_v2")
+#@ end
 name: #@ build_test_job_name(conf)
 max_in_flight: 10
 on_failure: #@ trigger["on_failure"]
@@ -255,6 +264,11 @@ plan:
     params:
       unpack: true
   - get: #@ conf["res_build_image"]
+#@ if conf["gpdb_ver"] == 7:
+  - get: bin_gppkg_v2
+    params:
+      unpack: true
+#@ end
 #@   for test_image in conf["res_test_images"]:
   - get: #@ test_image
 #@   end
