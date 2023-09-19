@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -ex
+
 # R will be shipped in the plr gppkg for rhel, since those don't have R in the officail repo.
 # For ubuntu, just use the r-base from apt source.
 function install_build_deps() {
