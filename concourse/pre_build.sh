@@ -18,3 +18,10 @@ function install_build_deps() {
 }
 
 install_build_deps
+
+# Needed by gppkg Makefile
+BLDARCH="${OS_NAME}_x86_64"
+{
+    echo "export BLDARCH=$BLDARCH"
+} >>/home/gpadmin/.bashrc
+
