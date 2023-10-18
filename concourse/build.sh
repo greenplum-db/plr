@@ -8,6 +8,16 @@ TOP_DIR=/home/gpadmin
 # official repo, CentOS6 is not supported for now.
 function build_r() {
     pushd "$(find r_src -maxdepth 1 -type d -regex ".*R.*")"
+
+    if [ "$OS_NAME" = "rhel9" ]; then
+        # Fix gcc10 fortran failure with cmplx.f
+        # See https://stackoverflow.com/questions/63892055/fortran-error-type-mismatch-between-two-unrelated-subroutine-calls
+        export FFLAGS="-fallow-argument-mismatch"
+        # There are many "multiple definition" error with gcc10 and R 3.3.3.
+        # Just turn the error off for el9.
+        export CFLAGS="-fcommon"
+    fi
+
     ./configure --prefix=$R_PREFIX --with-x=no --with-readline=no --enable-R-shlib --disable-rpath
     make -j4
     make install
